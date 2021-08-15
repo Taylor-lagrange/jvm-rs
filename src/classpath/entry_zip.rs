@@ -1,7 +1,6 @@
-use zip::ZipArchive;
-use std::io::ErrorKind;
 use log::debug;
-
+use std::io::ErrorKind;
+use zip::ZipArchive;
 
 pub struct ZipEntry {
   abs_dir: std::path::PathBuf,
@@ -16,7 +15,7 @@ impl ZipEntry {
       std::fs::File::open(p.as_path()).expect(&format!("Couldn't open file {}", &path)),
     )
     .expect(&format!("Couldn't open file {}", &path));
-    debug!("{} loads complete",path);
+    debug!("{} loads complete", path);
     let mut entry = ZipEntry {
       abs_dir: p,
       archive: archive,
@@ -28,7 +27,8 @@ impl ZipEntry {
 
 impl super::entry::Entry for ZipEntry {
   fn read_class(&mut self, class_name: String) -> Result<Vec<u8>, std::io::Error> {
-    let file = self.archive.by_name(class_name.as_str());
+    let real_name = self.get_class_name(class_name);
+    let file = self.archive.by_name(real_name.as_str());
     match file {
       Ok(mut con) => {
         use std::io::Read;
@@ -38,7 +38,7 @@ impl super::entry::Entry for ZipEntry {
       }
       _ => Err(std::io::Error::new(
         ErrorKind::NotFound,
-        String::from("class not found:") + &class_name,
+        String::from("class not found:") + &real_name,
       )),
     }
   }

@@ -58,15 +58,15 @@ pub enum AttributeInfo {
 }
 
 impl AttributeInfo {
-  pub fn readAttributes(reader: &mut ClassReader, cp: &ConstantPool) -> Vec<AttributeInfo> {
+  pub fn read_attributes(reader: &mut ClassReader, cp: &ConstantPool) -> Vec<AttributeInfo> {
     let attribute_count = reader.read_u16();
     let mut v = Vec::new();
     for _ in 0..attribute_count {
-      v.push(AttributeInfo::readAttribute(reader, cp))
+      v.push(AttributeInfo::read_attribute(reader, cp))
     }
     v
   }
-  fn readAttribute(reader: &mut ClassReader, cp: &ConstantPool) -> AttributeInfo {
+  fn read_attribute(reader: &mut ClassReader, cp: &ConstantPool) -> AttributeInfo {
     let attr_name_index = reader.read_u16();
     let attr_len = reader.read_u32();
     match cp.get_utf8(attr_name_index as usize).as_str() {
@@ -75,8 +75,8 @@ impl AttributeInfo {
         let max_locals = reader.read_u16();
         let code_len = reader.read_u32();
         let code = reader.read_bytes(&(code_len as usize));
-        let exception_table = AttributeInfo::readExceptionTable(reader);
-        let attributes = AttributeInfo::readAttributes(reader, cp);
+        let exception_table = AttributeInfo::read_exception_table(reader);
+        let attributes = AttributeInfo::read_attributes(reader, cp);
         AttributeInfo::Code {
           max_stack: max_stack,
           max_locals: max_locals,
@@ -132,7 +132,7 @@ impl AttributeInfo {
       },
     }
   }
-  fn readExceptionTable(reader: &mut ClassReader) -> Vec<ExceptionTableEntry> {
+  fn read_exception_table(reader: &mut ClassReader) -> Vec<ExceptionTableEntry> {
     let exception_table_len = reader.read_u16();
     let mut table = Vec::new();
     for _ in 0..exception_table_len {

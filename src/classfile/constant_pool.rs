@@ -12,9 +12,9 @@ pub const CONSTANT_LONG: u8 = 5;
 pub const CONSTANT_DOUBLE: u8 = 6;
 pub const CONSTANT_NAME_AND_TYPE: u8 = 12;
 pub const CONSTANT_UTF8: u8 = 1;
-pub const CONSTANT_METHOD_HANDLE: u8 = 15;
-pub const CONSTANT_METHOD_TYPE: u8 = 16;
-pub const CONSTANT_INVOKE_DYNAMIC: u8 = 18;
+// pub const CONSTANT_METHOD_HANDLE: u8 = 15;
+// pub const CONSTANT_METHOD_TYPE: u8 = 16;
+// pub const CONSTANT_INVOKE_DYNAMIC: u8 = 18;
 
 #[derive(Clone, Debug)]
 pub enum ConstantInfo {
@@ -60,7 +60,7 @@ pub enum ConstantInfo {
 
 pub struct ConstantPool {
   pool: Vec<ConstantInfo>,
-  pool_count: isize,
+  pub pool_count: isize,
 }
 
 impl ConstantPool {

@@ -25,7 +25,7 @@ impl CompositeEntry {
 impl super::entry::Entry for CompositeEntry {
   fn read_class(&mut self, class_name: String) -> Result<Vec<u8>, std::io::Error> {
     for ent in self.entrys.iter_mut() {
-      let out = (**ent).read_class(class_name.clone());
+      let out = (**ent).read_class(class_name.to_owned());
       if let Ok(file) = out {
         return Ok(file);
       }

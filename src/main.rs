@@ -1,8 +1,10 @@
 use log4rs;
 use structopt::StructOpt;
 
-mod classpath;
 mod classfile;
+mod classpath;
+mod runtime;
+mod utils;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "Usage")]
@@ -39,20 +41,16 @@ fn main() {
 
 fn start_jvm(opt: Opt) {
     println!("JVM start! class: {} args: {:?} \n", opt.class, opt.args);
+    use classfile::class_file::*;
     use classpath::classpath::*;
     use classpath::entry::Entry;
     let mut cp = Classpath::prase(opt.xjre_option, opt.cp_option);
-    if let Ok(file) = cp.read_class(get_class_name(opt.class)) {
-        println!("{:?}", file)
+    if let Ok(file) = cp.read_class(opt.class) {
+        println!("{:?}", file);
+        if let Ok(class_file) = ClassFile::parse(file){
+            class_file.print_class_info()
+        }
     }
 }
 
-fn get_class_name(s: String) -> String {
-    let p = s.replace(".", "/");
-    if p.ends_with("/class") {
-        p.strip_suffix("/class").unwrap().to_string() + ".class"
-    } else {
-        p + ".class"
-    }
-}
 // run example: cargo run -- -x /mnt/d/Development/Java/jdk1.8.0_261/jre/ --class java.lang.Object.class

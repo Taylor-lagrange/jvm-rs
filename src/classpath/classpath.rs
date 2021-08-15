@@ -13,8 +13,8 @@ pub struct Classpath {
 impl Classpath {
   pub fn prase(jre_option: Option<String>, cp_option: Option<String>) -> Classpath {
     let jre_dir = std::path::PathBuf::from(Classpath::get_jre_dir(jre_option));
-    let mut jre_lib_path = jre_dir.clone();
-    let mut jre_ext_path = jre_dir.clone();
+    let mut jre_lib_path = jre_dir.to_owned();
+    let mut jre_ext_path = jre_dir.to_owned();
     jre_lib_path.push("lib");
     jre_lib_path.push("*");
     jre_ext_path.push("lib");
@@ -51,11 +51,11 @@ impl Classpath {
 
 impl super::entry::Entry for Classpath {
   fn read_class(&mut self, class_name: String) -> Result<Vec<u8>, std::io::Error> {
-    let mut classfile = self.boot_classpath.read_class(class_name.clone());
+    let mut classfile = self.boot_classpath.read_class(class_name.to_owned());
     if classfile.is_ok() {
       return classfile;
     }
-    classfile = self.ext_classpath.read_class(class_name.clone());
+    classfile = self.ext_classpath.read_class(class_name.to_owned());
     if classfile.is_ok() {
       return classfile;
     }

@@ -2,4 +2,4 @@
 log/*
 resources/*
 target/*
-*/*/__pycache__
+*.class
