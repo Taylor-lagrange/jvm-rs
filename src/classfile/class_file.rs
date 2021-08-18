@@ -104,4 +104,14 @@ impl ClassFile {
     }
     info!(" {}\n", method_str);
   }
+  pub fn get_main_method(&self) -> &MemberInfo {
+    for info in self.methods.iter() {
+      if self.constant_pool.get_utf8(info.name_index as usize) == "main"
+        && self.constant_pool.get_utf8(info.descriptor_index as usize) == "([Ljava/lang/String;)V"
+      {
+        return info;
+      }
+    }
+    panic!("no main method in class {}", self.class_name())
+  }
 }

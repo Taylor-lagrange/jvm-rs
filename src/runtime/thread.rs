@@ -1,22 +1,28 @@
 use super::local_vars::*;
 use super::operand_stack::*;
 use crate::utils::list::*;
+use std::cell::RefCell;
+use std::rc::Rc;
 
-struct Frame<'a> {
-  local_vars: LocalVars<'a>,
-  oper_and_stack: OperandStack<'a>,
+pub struct Frame<'a> {
+  pub local_vars: LocalVars<'a>,
+  pub operand_stack: OperandStack<'a>,
+  pub thread: Rc<RefCell<Thread<'a>>>,
+  pub next_pc: usize,
 }
 
 impl<'a> Frame<'a> {
-  pub fn new(max_locals: usize, max_stack: usize) -> Frame<'a> {
+  pub fn new(thread: Rc<RefCell<Thread<'a>>>, max_locals: usize, max_stack: usize) -> Frame<'a> {
     Frame {
       local_vars: LocalVars::new(max_locals),
-      oper_and_stack: OperandStack::new(max_stack),
+      thread: thread,
+      operand_stack: OperandStack::new(max_stack),
+      next_pc: 0,
     }
   }
 }
 
-struct Stack<'a> {
+pub struct Stack<'a> {
   pub max_size: usize,
   pub frame_list: List<Frame<'a>>,
 }
@@ -50,16 +56,19 @@ impl<'a> Stack<'a> {
   }
 }
 
-struct Thread<'a> {
-  pc: i32,
-  stack: Stack<'a>,
+pub struct Thread<'a> {
+  pub pc: i32,
+  pub stack: Stack<'a>,
 }
 
 impl<'a> Thread<'a> {
-  pub fn new() -> Thread<'a> {
-    Thread {
+  pub fn new() -> Rc<RefCell<Thread<'a>>> {
+    Rc::new(RefCell::new(Thread {
       pc: 0,
       stack: Stack::new(1024),
-    }
+    }))
+  }
+  pub fn new_frame(thread: Rc<RefCell<Thread<'a>>>, max_locals: usize, max_stack: usize) -> Frame<'a> {
+    Frame::new(thread, max_locals, max_stack)
   }
 }

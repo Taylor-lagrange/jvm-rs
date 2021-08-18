@@ -3,3 +3,4 @@ log/*
 resources/*
 target/*
 *.class
+.idea/*

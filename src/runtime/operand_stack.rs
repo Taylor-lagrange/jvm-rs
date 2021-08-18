@@ -1,9 +1,10 @@
 use super::object::*;
 use std::mem::transmute;
 
+#[derive(Clone)]
 pub enum Slot<'a> {
   Num(i32),
-  RefObject(&'a Object),
+  RefObject(Option<&'a Object>),
   Nil,
 }
 
@@ -19,11 +20,11 @@ impl<'a> OperandStack<'a> {
       slots: Vec::with_capacity(max_stack),
     }
   }
-  fn push_int(&mut self, val: i32) {
+  pub fn push_int(&mut self, val: i32) {
     self.size += 1;
     self.slots.push(Slot::Num(val))
   }
-  fn pop_int(&mut self) -> i32 {
+  pub fn pop_int(&mut self) -> i32 {
     self.size -= 1;
     if let Some(Slot::Num(num)) = self.slots.pop() {
       num
@@ -31,12 +32,12 @@ impl<'a> OperandStack<'a> {
       panic!("invalid: pop when empty stack")
     }
   }
-  fn push_float(&mut self, val: f32) {
+  pub fn push_float(&mut self, val: f32) {
     let data = val.to_bits();
     self.size += 1;
     self.slots.push(Slot::Num(data as i32))
   }
-  fn pop_float(&mut self) -> f32 {
+  pub fn pop_float(&mut self) -> f32 {
     self.size -= 1;
     if let Some(Slot::Num(num)) = self.slots.pop() {
       let data: f32 = unsafe { transmute(num) };
@@ -45,12 +46,12 @@ impl<'a> OperandStack<'a> {
       panic!("invalid: pop when empty stack")
     }
   }
-  fn push_long(&mut self, val: i64) {
+  pub fn push_long(&mut self, val: i64) {
     self.size += 2;
     self.slots.push(Slot::Num(val as i32));
     self.slots.push(Slot::Num((val >> 32) as i32))
   }
-  fn pop_long(&mut self) -> i64 {
+  pub fn pop_long(&mut self) -> i64 {
     self.size -= 2;
     let low: u32;
     let high: u32;
@@ -66,24 +67,37 @@ impl<'a> OperandStack<'a> {
     }
     (((high as u64) << 32) | (low as u64)) as i64
   }
-  fn push_double(&mut self, val: f64) {
+  pub fn push_double(&mut self, val: f64) {
     let data: i64 = unsafe { transmute(val) };
     self.push_long(data)
   }
-  fn pop_double(&mut self) -> f64 {
+  pub fn pop_double(&mut self) -> f64 {
     let data = self.pop_long();
     unsafe { transmute(data) }
   }
-  fn push_ref(&mut self, ref_object: &'a Object) {
+  pub fn push_ref(&mut self, ref_object: Option<&'a Object>) {
     self.size += 1;
     self.slots.push(Slot::RefObject(ref_object));
   }
-  fn pop_ref(&mut self) -> &Object {
+  pub fn pop_ref(&mut self) -> Option<&'a Object> {
     if let Some(Slot::RefObject(object)) = self.slots.pop() {
+      self.size -= 1;
       object
     } else {
       panic!("invalid: pop when empty stack")
     }
+  }
+  pub fn pop_slot(&mut self) -> Slot<'a> {
+    if let Some(object) = self.slots.pop() {
+      self.size -= 1;
+      object
+    } else {
+      panic!("invalid: pop when empty stack")
+    }
+  }
+  pub fn push_slot(&mut self, slot: Slot<'a>) {
+    self.size += 1;
+    self.slots.push(slot);
   }
 }
 
@@ -92,7 +106,7 @@ mod test {
   use super::*;
 
   #[test]
-  fn test_oper_and_stack() {
+  fn test_operand_stack() {
     let mut stack = OperandStack::new(10);
     let pi: f32 = 3.1415926;
     let e: f64 = 2.71828182845;

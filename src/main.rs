@@ -1,8 +1,11 @@
+use crate::classfile::attribute_info::*;
+use crate::instructions::*;
 use log4rs;
 use structopt::StructOpt;
 
 mod classfile;
 mod classpath;
+mod instructions;
 mod runtime;
 mod utils;
 
@@ -46,8 +49,19 @@ fn start_jvm(opt: Opt) {
     use classpath::entry::Entry;
     let mut cp = Classpath::prase(opt.xjre_option, opt.cp_option);
     if let Ok(file) = cp.read_class(opt.class) {
-        println!("{:?}", file);
-        if let Ok(class_file) = ClassFile::parse(file){
+        // println!("{:?}", file);
+        if let Ok(class_file) = ClassFile::parse(file) {
+            // let method = class_file.get_main_method();
+            // instructions::interpreter::interpret(method.clone());
+            // if let AttributeInfo::Code {
+            //     max_stack,
+            //     max_locals,
+            //     code,
+            //     ..
+            // } = method.code_attribute()
+            // {
+            //     println!("ms:{} ml:{} c:{:?}", max_stack, max_locals, code)
+            // }
             class_file.print_class_info()
         }
     }

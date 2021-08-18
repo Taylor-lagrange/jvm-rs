@@ -2,11 +2,12 @@ use super::attribute_info::*;
 use super::class_reader::*;
 use super::constant_pool::*;
 
+#[derive(Clone)]
 pub struct MemberInfo {
-  access_flags: u16,
+  pub access_flags: u16,
   pub name_index: u16,
-  descriptor_index: u16,
-  attributes: Vec<AttributeInfo>,
+  pub descriptor_index: u16,
+  pub attributes: Vec<AttributeInfo>,
 }
 
 impl MemberInfo {
@@ -19,12 +20,21 @@ impl MemberInfo {
     v
   }
 
-  fn read_member(reader: &mut ClassReader, cp: &ConstantPool) -> MemberInfo {
+  pub fn read_member(reader: &mut ClassReader, cp: &ConstantPool) -> MemberInfo {
     MemberInfo {
       access_flags: reader.read_u16(),
       name_index: reader.read_u16(),
       descriptor_index: reader.read_u16(),
       attributes: AttributeInfo::read_attributes(reader, cp),
     }
+  }
+
+  pub fn code_attribute(&self) -> AttributeInfo {
+    for info in self.attributes.iter() {
+      if let AttributeInfo::Code { .. } = info {
+        return info.clone()
+      }
+    }
+    panic!("no code attribute in member info");
   }
 }
