@@ -59,7 +59,7 @@ pub enum ConstantInfo {
 }
 
 pub struct ConstantPool {
-  pool: Vec<ConstantInfo>,
+  pub pool: Vec<ConstantInfo>,
   pub pool_count: isize,
 }
 

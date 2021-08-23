@@ -14,7 +14,10 @@ impl Instruction for IF_ACMPEQ {
     let offset = self.fetch_operands(reader, frame);
     let v2 = frame.operand_stack.pop_ref();
     let v1 = frame.operand_stack.pop_ref();
-    if (v1.is_none() && v2.is_none()) || std::ptr::eq(v1.unwrap(), v2.unwrap()) {
+    if v1.is_none() && v2.is_none() {
+      branch(frame, offset);
+    }
+    if (v1.is_some() && v2.is_some()) && std::ptr::eq(&v1.unwrap(), &v2.unwrap()) {
       branch(frame, offset);
     }
   }
@@ -25,7 +28,9 @@ impl Instruction for IF_ACMPNE {
     let offset = self.fetch_operands(reader, frame);
     let v2 = frame.operand_stack.pop_ref();
     let v1 = frame.operand_stack.pop_ref();
-    if !((v1.is_none() && v2.is_none()) || std::ptr::eq(v1.unwrap(), v2.unwrap())) {
+    if !(v1.is_none() && v2.is_none())
+      && !((v1.is_some() && v2.is_some()) && std::ptr::eq(&v1.unwrap(), &v2.unwrap()))
+    {
       branch(frame, offset);
     }
   }

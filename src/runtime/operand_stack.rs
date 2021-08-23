@@ -1,10 +1,12 @@
-use super::object::*;
+use super::heap::object::*;
+use std::cell::RefCell;
 use std::mem::transmute;
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub enum Slot<'a> {
   Num(i32),
-  RefObject(Option<&'a Object>),
+  RefObject(Option<Rc<RefCell<Object<'a>>>>),
   Nil,
 }
 
@@ -75,11 +77,11 @@ impl<'a> OperandStack<'a> {
     let data = self.pop_long();
     unsafe { transmute(data) }
   }
-  pub fn push_ref(&mut self, ref_object: Option<&'a Object>) {
+  pub fn push_ref(&mut self, ref_object: Option<Rc<RefCell<Object<'a>>>>) {
     self.size += 1;
     self.slots.push(Slot::RefObject(ref_object));
   }
-  pub fn pop_ref(&mut self) -> Option<&'a Object> {
+  pub fn pop_ref(&mut self) -> Option<Rc<RefCell<Object<'a>>>> {
     if let Some(Slot::RefObject(object)) = self.slots.pop() {
       self.size -= 1;
       object

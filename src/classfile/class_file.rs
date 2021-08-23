@@ -8,14 +8,14 @@ pub struct ClassFile {
   // magic: u32,
   minor_version: u16,
   major_version: u16,
-  constant_pool: ConstantPool,
-  access_flags: u16,
+  pub constant_pool: ConstantPool,
+  pub access_flags: u16,
   // class⽂件存储的类名类似完全限定名，但是把点换成了斜线，Java语⾔规范把这种名字叫作二进制名（binarynames）
   this_class: u16,
   super_class: u16,
   interfaces: Vec<u16>,
-  fields: Vec<MemberInfo>,
-  methods: Vec<MemberInfo>,
+  pub fields: Vec<MemberInfo>,
+  pub methods: Vec<MemberInfo>,
   attributes: Vec<AttributeInfo>,
 }
 
@@ -58,10 +58,10 @@ impl ClassFile {
       attributes: attributes,
     })
   }
-  fn class_name(&self) -> &String {
-    self.constant_pool.get_class_name(self.this_class as usize)
+  pub fn class_name(&self) -> String {
+    self.constant_pool.get_class_name(self.this_class as usize).to_owned()
   }
-  fn super_class_name(&self) -> String {
+  pub fn super_class_name(&self) -> String {
     if self.super_class > 0 {
       self
         .constant_pool
@@ -71,13 +71,13 @@ impl ClassFile {
       "".to_string()
     }
   }
-  fn interface_names(&self) -> Vec<&String> {
+  pub fn interface_names(&self) -> Vec<String> {
     let mut v = Vec::new();
     for i in 0..self.interfaces.len() {
       v.push(
         self
           .constant_pool
-          .get_class_name(self.interfaces[i] as usize),
+          .get_class_name(self.interfaces[i] as usize).to_owned(),
       )
     }
     v

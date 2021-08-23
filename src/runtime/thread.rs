@@ -1,22 +1,37 @@
+use super::heap::method::*;
 use super::local_vars::*;
 use super::operand_stack::*;
 use crate::utils::list::*;
 use std::cell::RefCell;
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
+
+/*
+JVM
+  Thread
+    pc
+    Stack
+      Frame
+        LocalVars
+        OperandStack
+*/
 
 pub struct Frame<'a> {
   pub local_vars: LocalVars<'a>,
   pub operand_stack: OperandStack<'a>,
-  pub thread: Rc<RefCell<Thread<'a>>>,
+  pub thread: Weak<RefCell<Thread<'a>>>,
+  pub method: Rc<RefCell<Method<'a>>>,
   pub next_pc: usize,
 }
 
 impl<'a> Frame<'a> {
-  pub fn new(thread: Rc<RefCell<Thread<'a>>>, max_locals: usize, max_stack: usize) -> Frame<'a> {
+  pub fn new(method: Rc<RefCell<Method<'a>>>, thread: Weak<RefCell<Thread<'a>>>) -> Frame<'a> {
+    let max_locals = method.borrow().max_locals;
+    let max_stack = method.borrow().max_stack;
     Frame {
-      local_vars: LocalVars::new(max_locals),
+      local_vars: LocalVars::new(max_locals as usize),
       thread: thread,
-      operand_stack: OperandStack::new(max_stack),
+      method: method,
+      operand_stack: OperandStack::new(max_stack as usize),
       next_pc: 0,
     }
   }
@@ -68,7 +83,7 @@ impl<'a> Thread<'a> {
       stack: Stack::new(1024),
     }))
   }
-  pub fn new_frame(thread: Rc<RefCell<Thread<'a>>>, max_locals: usize, max_stack: usize) -> Frame<'a> {
-    Frame::new(thread, max_locals, max_stack)
+  pub fn new_frame(thread: Weak<RefCell<Thread<'a>>>, method: Rc<RefCell<Method<'a>>>) -> Frame<'a> {
+    Frame::new(method, thread)
   }
 }

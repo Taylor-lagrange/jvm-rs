@@ -8,5 +8,6 @@ mod factory;
 pub mod interpreter;
 mod loads;
 mod math;
+mod reference;
 mod stack;
 mod stores;

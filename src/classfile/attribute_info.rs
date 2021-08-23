@@ -55,6 +55,7 @@ pub enum AttributeInfo {
     length: u32,
     info: Vec<u8>,
   },
+  Nil,
 }
 
 impl AttributeInfo {

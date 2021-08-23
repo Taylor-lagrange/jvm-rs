@@ -32,9 +32,18 @@ impl MemberInfo {
   pub fn code_attribute(&self) -> AttributeInfo {
     for info in self.attributes.iter() {
       if let AttributeInfo::Code { .. } = info {
-        return info.clone()
+        return info.clone();
       }
     }
     panic!("no code attribute in member info");
+  }
+
+  pub fn constant_value_attribute(&self) -> AttributeInfo {
+    for info in self.attributes.iter() {
+      if let AttributeInfo::ConstantValue { .. } = info {
+        return info.clone();
+      }
+    }
+    AttributeInfo::Nil
   }
 }

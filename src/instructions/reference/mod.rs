@@ -1,0 +1,9 @@
+pub mod checkcast;
+pub mod getfield;
+pub mod getstatic;
+pub mod instanceof;
+pub mod invokespecial;
+pub mod invokevirtual;
+pub mod new;
+pub mod putfield;
+pub mod putstatic;
