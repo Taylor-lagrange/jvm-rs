@@ -1,29 +1,33 @@
 use super::factory::*;
-use crate::classfile::attribute_info::*;
-use crate::classfile::member_info::*;
-use crate::instructions::base::branch::*;
 use crate::instructions::base::bytecode_reader::*;
-use crate::instructions::base::instruction::*;
 use crate::runtime::heap::method::*;
 use crate::runtime::thread::*;
 use std::cell::RefCell;
-use std::panic;
 use std::rc::Rc;
 
 pub fn interpret<'a>(method: Rc<RefCell<Method<'a>>>) {
-  let mut thread = Thread::new();
+  let thread = Thread::new();
   let frame = Thread::new_frame(Rc::downgrade(&thread), method.clone());
-  thread.borrow_mut().stack.push(frame);
-  run(thread, method.borrow().code.clone());
+  let code;
+  {
+    thread.borrow_mut().stack.push(frame);
+    code = method.borrow().code.clone()
+  }
+  run(thread, code);
 }
 
 pub fn run(thread: Rc<RefCell<Thread>>, code: Vec<u8>) {
-  let mut frame = thread.borrow_mut().stack.pop();
+  let mut frame;
+  {
+    frame = thread.borrow_mut().stack.pop();
+  }
   let mut reader = BytecodeReader::new(code, 0);
   loop {
     // update reader and thread pc by frame pc
     let pc: i32 = frame.next_pc as i32;
-    thread.borrow_mut().pc = pc;
+    {
+      thread.borrow_mut().pc = pc;
+    }
     reader.reset_pc(pc as usize);
     // fetch opcode from reader
     let opcode = reader.read_u8();

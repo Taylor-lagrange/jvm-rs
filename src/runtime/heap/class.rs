@@ -101,7 +101,7 @@ impl<'a> Class<'a> {
 		Rc::new(RefCell::new(Object::new(Rc::downgrade(class))))
 	}
 
-	fn is_assignable_from(&self, iface: Weak<RefCell<Class<'a>>>) -> bool {
+	pub fn is_assignable_from(&self, iface: Weak<RefCell<Class<'a>>>) -> bool {
 		let i = iface.upgrade().unwrap();
 		let class = i.borrow();
 		if self.name == class.name {

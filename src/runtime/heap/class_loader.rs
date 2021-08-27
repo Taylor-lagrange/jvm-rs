@@ -14,49 +14,78 @@ pub struct ClassLoader<'a> {
 }
 
 impl<'a> ClassLoader<'a> {
-  pub fn new(cp: Classpath) -> Rc<ClassLoader<'a>> {
-    Rc::new(ClassLoader {
+  pub fn new(cp: Classpath) -> Rc<RefCell<ClassLoader<'a>>> {
+    Rc::new(RefCell::new(ClassLoader {
       class_path: cp,
       class_map: HashMap::new(),
-    })
+    }))
   }
   pub fn load_class(
     loader: Weak<RefCell<ClassLoader<'a>>>,
     name: &String,
   ) -> Weak<RefCell<Class<'a>>> {
-    let rc = loader.upgrade().unwrap();
-    let loader_instance = rc.borrow();
-    let value = loader_instance.class_map.get(name);
-    if let Option::None = value {
-      return ClassLoader::load_non_array_class(loader, name);
+    {
+      let mut class = Weak::new();
+      {
+        let rc = loader.clone().upgrade().unwrap();
+        let loader_instance = rc.borrow();
+        let value = loader_instance.class_map.get(name);
+        if value.is_some() {
+          class = Rc::downgrade(value.unwrap());
+        }
+      }
+      if let Some(..) = class.upgrade() {
+        return class;
+      }
     }
-    Rc::downgrade(value.unwrap())
+    // use {} to mark the borrow range of loader_instance,
+    // because loader will be borrow once again in load_non_array_class
+    // so before excute load_non_array_class, the borrow of loader must finish
+    return ClassLoader::load_non_array_class(loader, name);
   }
   fn load_non_array_class(
     loader: Weak<RefCell<ClassLoader<'a>>>,
     name: &String,
   ) -> Weak<RefCell<Class<'a>>> {
-    let rc = loader.upgrade().unwrap();
-    let mut class_loader = rc.borrow_mut();
-    let classbyte = class_loader.read_class(name);
-    let class = class_loader.parse_class(classbyte);
-    class.borrow_mut().loader = loader.clone();
+    let classbyte;
+    let class;
+    {
+      let rc = loader.upgrade().unwrap();
+      let mut class_loader = rc.borrow_mut();
+      classbyte = class_loader.read_class(name);
+      class = class_loader.parse_class(classbyte);
+      class.borrow_mut().loader = loader.clone();
+    }
     ClassLoader::resolve_super_class(Rc::downgrade(&class));
     ClassLoader::resolve_interfaces(Rc::downgrade(&class));
-    class_loader
-      .class_map
-      .insert(class.borrow().name.clone(), class.clone());
+    {
+      let rc = loader.upgrade().unwrap();
+      let mut class_loader = rc.borrow_mut();
+      class_loader
+        .class_map
+        .insert(class.borrow().name.clone(), class.clone());
+    }
     ClassLoader::link(class.clone());
     Rc::downgrade(&class)
   }
   fn resolve_super_class(class: Weak<RefCell<Class<'a>>>) {
-    let rc = class.upgrade().unwrap();
-    let mut class_instance = rc.borrow_mut();
-    if class_instance.name != "java/lang/Object" {
-      class_instance.super_class = ClassLoader::load_class(
-        class_instance.loader.clone(),
-        &class_instance.super_class_name,
-      );
+    let mut have_super = false;
+    let mut loader_ref = Weak::new();
+    let mut class_name = String::new();
+    {
+      let rc = class.upgrade().unwrap();
+      let class_instance = rc.borrow();
+      if class_instance.name != "java/lang/Object" {
+        have_super = true;
+        loader_ref = class_instance.loader.clone();
+        class_name = class_instance.super_class_name.clone()
+      }
+    }
+    if have_super {
+      let super_class = ClassLoader::load_class(loader_ref, &class_name);
+      let rc = class.upgrade().unwrap();
+      let mut class_instance = rc.borrow_mut();
+      class_instance.super_class = super_class;
     }
   }
   fn resolve_interfaces(class: Weak<RefCell<Class<'a>>>) {
@@ -71,7 +100,7 @@ impl<'a> ClassLoader<'a> {
     class_instance.interfaces = v
   }
   fn link(class: Rc<RefCell<Class<'a>>>) {
-    ClassLoader::alloc_and_init_static_vars(class.clone());
+    ClassLoader::calc_instance_field_slot_ids(class.clone());
     ClassLoader::calc_static_field_slot_ids(class.clone());
     ClassLoader::alloc_and_init_static_vars(class.clone());
   }

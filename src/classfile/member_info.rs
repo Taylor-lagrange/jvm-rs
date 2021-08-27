@@ -35,7 +35,8 @@ impl MemberInfo {
         return info.clone();
       }
     }
-    panic!("no code attribute in member info");
+    AttributeInfo::Nil
+    // panic!("no code attribute in member info");
   }
 
   pub fn constant_value_attribute(&self) -> AttributeInfo {

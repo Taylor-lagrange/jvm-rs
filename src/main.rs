@@ -1,5 +1,3 @@
-use crate::classfile::attribute_info::*;
-use crate::instructions::*;
 use log4rs;
 use structopt::StructOpt;
 
@@ -44,26 +42,24 @@ fn main() {
 
 fn start_jvm(opt: Opt) {
     println!("JVM start! class: {} args: {:?} \n", opt.class, opt.args);
-    use classfile::class_file::*;
     use classpath::classpath::*;
-    use classpath::entry::Entry;
-    let mut cp = Classpath::prase(opt.xjre_option, opt.cp_option);
-    if let Ok(file) = cp.read_class(opt.class) {
-        // println!("{:?}", file);
-        if let Ok(class_file) = ClassFile::parse(file) {
-            // let method = class_file.get_main_method();
-            // instructions::interpreter::interpret(method.clone());
-            // if let AttributeInfo::Code {
-            //     max_stack,
-            //     max_locals,
-            //     code,
-            //     ..
-            // } = method.code_attribute()
-            // {
-            //     println!("ms:{} ml:{} c:{:?}", max_stack, max_locals, code)
-            // }
-            class_file.print_class_info()
-        }
+    use instructions::interpreter::*;
+    use runtime::heap::class_loader::*;
+    use std::rc::Rc;
+
+    let cp = Classpath::prase(opt.xjre_option, opt.cp_option);
+    let class_loader = ClassLoader::new(cp);
+    let main_class = ClassLoader::load_class(Rc::downgrade(&class_loader), &opt.class);
+    let main_method = main_class
+        .upgrade()
+        .unwrap()
+        .borrow_mut()
+        .get_main_method()
+        .upgrade();
+    if main_method.is_none() {
+        print!("Main method not found in class {}\n", opt.class);
+    }else{
+        interpret(main_method.unwrap());
     }
 }
 

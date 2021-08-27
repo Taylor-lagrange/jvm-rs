@@ -6,7 +6,7 @@ use super::method::*;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct SymRef<'a> {
   pub constant_pool: Weak<RefCell<ConstantPool<'a>>>,
   pub class_name: String,
@@ -17,11 +17,20 @@ impl<'a> SymRef<'a> {
   pub fn resolved_class(&mut self) -> Weak<RefCell<Class<'a>>> {
     let class = self.class.upgrade();
     if let Option::None = class {
+      let loader;
+      {
+        let pool_rc = self.constant_pool.upgrade().unwrap();
+        let class_rc = pool_rc.borrow().class.clone();
+        let class = class_rc.upgrade().unwrap();
+        let cp_class = class.borrow();
+        loader = cp_class.loader.clone();
+      }
+      self.class = ClassLoader::load_class(loader, &self.class_name);
+      // borrow once more
       let pool_rc = self.constant_pool.upgrade().unwrap();
-      let class_rc = pool_rc.borrow_mut().class.clone();
+      let class_rc = pool_rc.borrow().class.clone();
       let class = class_rc.upgrade().unwrap();
-      let cp_class = class.borrow_mut();
-      self.class = ClassLoader::load_class(cp_class.loader.clone(), &self.class_name);
+      let cp_class = class.borrow();
       if !self
         .class
         .upgrade()
@@ -36,7 +45,7 @@ impl<'a> SymRef<'a> {
   }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct MemberRef<'a> {
   pub sym_ref: SymRef<'a>,
   pub name: String,
@@ -73,7 +82,7 @@ impl<'a> MemberRef<'a> {
   }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct MethodRef<'a> {
   pub member_ref: MemberRef<'a>,
   pub methods: Weak<RefCell<Method<'a>>>,
@@ -92,7 +101,7 @@ impl<'a> MethodRef<'a> {
   }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct InterfaceMethodRef<'a> {
   pub member_ref: MemberRef<'a>,
   pub methods: Weak<RefCell<Method<'a>>>,
@@ -111,7 +120,7 @@ impl<'a> InterfaceMethodRef<'a> {
   }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct FieldRef<'a> {
   pub member_ref: MemberRef<'a>,
   pub field: Weak<RefCell<Field<'a>>>,
@@ -179,7 +188,7 @@ impl<'a> FieldRef<'a> {
   }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct ClassRef<'a> {
   pub sym_ref: SymRef<'a>,
 }

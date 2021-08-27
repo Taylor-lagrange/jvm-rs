@@ -3,6 +3,7 @@ use super::refs::*;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
+#[derive(Clone)]
 pub enum ConstantInfoRunTime<'a> {
   Class(ClassRef<'a>),
   Fieldref(FieldRef<'a>),
@@ -65,7 +66,7 @@ impl<'a> ConstantPool<'a> {
           v.push(ConstantInfoRunTime::Double(val));
           v.push(ConstantInfoRunTime::Nil)
         }
-        _ => {}
+        _ => v.push(ConstantInfoRunTime::Nil),
       };
     }
     cp.borrow_mut().consts = v;

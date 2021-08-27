@@ -2,7 +2,6 @@ use crate::instructions::base::bytecode_reader::*;
 use crate::instructions::base::instruction::*;
 use crate::runtime::heap::constant_pool::*;
 use crate::runtime::thread::*;
-use std::rc::Rc;
 
 pub struct GET_STATIC {}
 
@@ -10,17 +9,21 @@ impl Index16Instruction for GET_STATIC {}
 
 impl Instruction for GET_STATIC {
   fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let index = self.fetch_operands(reader, frame);
-    let rc = frame.method.borrow_mut().class_member.class.clone();
-    let pool_rc = rc
-      .upgrade()
-      .unwrap()
-      .borrow_mut()
-      .constant_pool
-      .clone()
-      .unwrap();
-    let mut cp = pool_rc.borrow_mut();
-    if let ConstantInfoRunTime::Fieldref(refs) = cp.get_constant_info(index) {
+    let info;
+    {
+      let index = self.fetch_operands(reader, frame);
+      let rc = frame.method.borrow_mut().class_member.class.clone();
+      let pool_rc = rc
+        .upgrade()
+        .unwrap()
+        .borrow_mut()
+        .constant_pool
+        .clone()
+        .unwrap();
+      let mut cp = pool_rc.borrow_mut();
+      info = cp.get_constant_info(index).clone();
+    }
+    if let ConstantInfoRunTime::Fieldref(mut refs) = info {
       let field = refs.resolve_field();
       let class = refs.member_ref.sym_ref.resolved_class();
       //TODO:init class

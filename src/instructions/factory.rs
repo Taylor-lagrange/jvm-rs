@@ -6,6 +6,7 @@ use super::conversions::*;
 use super::extended::*;
 use super::loads::*;
 use super::math::*;
+use super::reference::*;
 use super::stack::*;
 use super::stores::*;
 
@@ -35,9 +36,10 @@ pub fn new_instruction(opcode: u8) -> Box<dyn Instruction> {
     0x10 => Box::new(ipush::BIPUSH {}),
     0x11 => Box::new(ipush::SIPUSH {}),
 
-    // 0x12 => LDC,
-    // 0x13 => LDC_W,
-    // 0x14 => LDC2_W,
+    0x12 => Box::new(ldc::LDC {}),
+    0x13 => Box::new(ldc::LDC_W {}),
+    0x14 => Box::new(ldc::LDC2_W {}),
+
     0x15 => Box::new(iload::ILOAD {}),
     0x16 => Box::new(lload::LLOAD {}),
     0x17 => Box::new(fload::FLOAD {}),
@@ -230,22 +232,22 @@ pub fn new_instruction(opcode: u8) -> Box<dyn Instruction> {
     //  0xaf => dreturn
     //  0xb0 => areturn
     //  0xb1 => _return
-    //	0xb2 => GET_STATIC
-    //  0xb3 => PUT_STATIC
-    //  0xb4 => GET_FIELD
-    //  0xb5 => PUT_FIELD
-    //	0xb6 => INVOKE_VIRTUAL
-    //  0xb7 => INVOKE_SPECIAL
+    0xb2 => Box::new(getstatic::GET_STATIC {}),
+    0xb3 => Box::new(putstatic::PUT_STATIC {}),
+    0xb4 => Box::new(getfield::GET_FIELD {}),
+    0xb5 => Box::new(putfield::PUT_FIELD {}),
+    0xb6 => Box::new(invokevirtual::INVOKE_VIRTUAL {}),
+    0xb7 => Box::new(invokespecial::INVOKE_SPECIAL {}),
     //  0xb8 => INVOKE_STATIC
     //  0xb9 => INVOKE_INTERFACE
     //  0xba => INVOKE_DYNAMIC
-    //  0xbb => NEW
+    0xbb => Box::new(new::NEW {}),
     //  0xbc => NEW_ARRAY
     //  0xbd => ANEW_ARRAY
     //  0xbe => arraylength
     //  0xbf => athrow
-    //  0xc0 => CHECK_CAST
-    //  0xc1 => INSTANCE_OF
+    0xc0 => Box::new(checkcast::CHECK_CAST {}),
+    0xc1 => Box::new(instanceof::INSTANCE_OF {}),
     //  0xc2 => monitorenter
     //  0xc3 => monitorexit
     //  0xc4 => WIDE

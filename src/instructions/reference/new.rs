@@ -10,17 +10,21 @@ impl Index16Instruction for NEW {}
 
 impl Instruction for NEW {
   fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let index = self.fetch_operands(reader, frame);
-    let rc = frame.method.borrow_mut().class_member.class.clone();
-    let pool_rc = rc
-      .upgrade()
-      .unwrap()
-      .borrow_mut()
-      .constant_pool
-      .clone()
-      .unwrap();
-    let mut cp = pool_rc.borrow_mut();
-    if let ConstantInfoRunTime::Class(refs) = cp.get_constant_info(index) {
+    let info;
+    {
+      let index = self.fetch_operands(reader, frame);
+      let rc = frame.method.borrow_mut().class_member.class.clone();
+      let pool_rc = rc
+        .upgrade()
+        .unwrap()
+        .borrow_mut()
+        .constant_pool
+        .clone()
+        .unwrap();
+      let mut cp = pool_rc.borrow_mut();
+      info = cp.get_constant_info(index).clone();
+    }
+    if let ConstantInfoRunTime::Class(mut refs) = info {
       let class = refs.sym_ref.resolved_class();
       let rc = class.clone().upgrade().unwrap();
       let class_instance = rc.borrow();

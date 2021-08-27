@@ -2,9 +2,10 @@ use super::heap::object::*;
 use super::operand_stack::*;
 use std::cell::RefCell;
 use std::mem::transmute;
-use std::rc::{Rc, Weak};
+use std::rc::Rc;
 
 pub type StaticFinalVar<'a> = LocalVars<'a>;
+pub type FieldVar<'a> = LocalVars<'a>;
 
 #[derive(Default, Clone)]
 pub struct LocalVars<'a>(Vec<Slot<'a>>);
@@ -69,14 +70,16 @@ impl<'a> LocalVars<'a> {
     self.0[index] = Slot::RefObject(ref_object);
   }
   pub fn get_ref(&mut self, index: usize) -> Option<Rc<RefCell<Object<'a>>>> {
-    if let Slot::RefObject(object) = &self.0[index] {
-      if let Some(obj) = object {
-        Some(obj.clone())
-      } else {
-        None
+    match &self.0[index] {
+      Slot::RefObject(object) => {
+        if let Some(obj) = object {
+          return Some(obj.clone());
+        } else {
+          return None;
+        }
       }
-    } else {
-      panic!("LocalVars get ref failed!")
+      Slot::Nil => return None,
+      Slot::Num(..) => panic!("LocalVars get ref failed!"),
     }
   }
 }
