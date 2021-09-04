@@ -82,6 +82,9 @@ impl<'a> LocalVars<'a> {
       Slot::Num(..) => panic!("LocalVars get ref failed!"),
     }
   }
+  pub fn set_slot(&mut self, index: usize, slot: Slot<'a>) {
+    self.0[index] = slot;
+  }
 }
 
 #[cfg(test)]

@@ -101,6 +101,9 @@ impl<'a> OperandStack<'a> {
     self.size += 1;
     self.slots.push(slot);
   }
+  pub fn get_ref_from_top(&self, n: usize) -> &Slot<'a> {
+    &self.slots[self.size - 1 - n]
+  }
 }
 
 #[cfg(test)]

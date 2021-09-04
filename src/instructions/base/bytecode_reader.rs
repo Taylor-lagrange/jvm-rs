@@ -1,18 +1,19 @@
 use std::mem::transmute;
+use std::rc::Rc;
 
 pub struct BytecodeReader {
-  code: Vec<u8>,
+  code: Rc<Vec<u8>>,
   pub pc: usize,
 }
 
 impl BytecodeReader {
-  pub fn new(code: Vec<u8>, pc: usize) -> BytecodeReader {
+  pub fn new(code: Rc<Vec<u8>>, pc: usize) -> BytecodeReader {
     BytecodeReader { code: code, pc: pc }
   }
   pub fn reset_pc(&mut self, pc: usize) {
     self.pc = pc;
   }
-  pub fn reset(&mut self, code: Vec<u8>, pc: usize) {
+  pub fn reset(&mut self, code: Rc<Vec<u8>>, pc: usize) {
     self.code = code;
     self.pc = pc;
   }

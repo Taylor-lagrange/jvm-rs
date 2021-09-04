@@ -8,33 +8,47 @@ use std::rc::Rc;
 pub fn interpret<'a>(method: Rc<RefCell<Method<'a>>>) {
   let thread = Thread::new();
   let frame = Thread::new_frame(Rc::downgrade(&thread), method.clone());
-  let code;
-  {
-    thread.borrow_mut().stack.push(frame);
-    code = method.borrow().code.clone()
-  }
-  run(thread, code);
+  thread.borrow_mut().stack.push(frame);
+  run(thread);
 }
 
-pub fn run(thread: Rc<RefCell<Thread>>, code: Vec<u8>) {
-  let mut frame;
-  {
-    frame = thread.borrow_mut().stack.pop();
-  }
-  let mut reader = BytecodeReader::new(code, 0);
+pub fn run(thread: Rc<RefCell<Thread>>) {
+  let empty_vec = Rc::new(Vec::new());
+  let mut reader = BytecodeReader::new(empty_vec, 0);
+
   loop {
-    // update reader and thread pc by frame pc
-    let pc: i32 = frame.next_pc as i32;
+    let pc;
+    let code;
     {
-      thread.borrow_mut().pc = pc;
+      let mut thread_instance = thread.borrow_mut();
+      let top = thread_instance.stack.top();
+      let frame = top.borrow();
+      // update reader and thread pc by frame pc
+      pc = frame.next_pc as i32;
+      let method = frame.method.borrow();
+      code = method.code.clone()
     }
-    reader.reset_pc(pc as usize);
+    thread.borrow_mut().pc = pc;
+
+    reader.reset(code, pc as usize);
+
     // fetch opcode from reader
     let opcode = reader.read_u8();
     let mut inst = new_instruction(opcode);
     // update frame pc because read of the opcode
-    frame.next_pc = reader.pc;
-    (*inst).execute(&mut reader, &mut frame);
+    {
+      let frame;
+      {
+        let mut thread_instance = thread.borrow_mut();
+        frame = thread_instance.stack.top();
+      }
+      frame.borrow_mut().next_pc = reader.pc;
+      let borrow_frame = &mut frame.borrow_mut();
+      (*inst).execute(&mut reader, borrow_frame);
+    }
+    if thread.borrow_mut().stack.is_empty() {
+      break;
+    }
   }
 }
 

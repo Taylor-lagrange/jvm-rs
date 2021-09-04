@@ -1,7 +1,9 @@
 use crate::instructions::base::bytecode_reader::*;
+use crate::instructions::base::class_init::*;
 use crate::instructions::base::instruction::*;
 use crate::runtime::heap::class::*;
 use crate::runtime::heap::constant_pool::*;
+use crate::runtime::heap::object::*;
 use crate::runtime::thread::*;
 
 pub struct NEW {}
@@ -26,12 +28,17 @@ impl Instruction for NEW {
     }
     if let ConstantInfoRunTime::Class(mut refs) = info {
       let class = refs.sym_ref.resolved_class();
+      if !Class::init_started(&class) {
+        frame.revert_pc();
+        init_class(frame.thread.clone(), class.clone());
+        return;
+      }
       let rc = class.clone().upgrade().unwrap();
       let class_instance = rc.borrow();
       if class_instance.is_interface() || class_instance.is_abstract() {
         panic!("java.lang.InstantiationError");
       }
-      let ref_obj = Class::new_object(&class.upgrade().unwrap());
+      let ref_obj = Object::new_object(&class.upgrade().unwrap());
       frame.operand_stack.push_ref(Some(ref_obj));
     }
   }

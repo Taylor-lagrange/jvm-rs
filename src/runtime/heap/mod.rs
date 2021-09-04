@@ -5,5 +5,6 @@ pub mod class_member;
 pub mod constant_pool;
 pub mod field;
 pub mod method;
+pub mod method_descriptor_parser;
 pub mod object;
 pub mod refs;

@@ -226,20 +226,23 @@ pub fn new_instruction(opcode: u8) -> Box<dyn Instruction> {
     0xaa => Box::new(tableswitch::TABLE_SWITCH {}),
     0xab => Box::new(lookupswitch::LOOKUP_SWITCH {}),
 
-    //  0xac => ireturn
-    //  0xad => lreturn
-    //  0xae => freturn
-    //  0xaf => dreturn
-    //  0xb0 => areturn
-    //  0xb1 => _return
+    0xac => Box::new(returns::IRETURN {}),
+    0xad => Box::new(returns::LRETURN {}),
+    0xae => Box::new(returns::FRETURN {}),
+    0xaf => Box::new(returns::DRETURN {}),
+    0xb0 => Box::new(returns::ARETURN {}),
+    0xb1 => Box::new(returns::RETURN {}),
+
     0xb2 => Box::new(getstatic::GET_STATIC {}),
     0xb3 => Box::new(putstatic::PUT_STATIC {}),
     0xb4 => Box::new(getfield::GET_FIELD {}),
     0xb5 => Box::new(putfield::PUT_FIELD {}),
+
     0xb6 => Box::new(invokevirtual::INVOKE_VIRTUAL {}),
     0xb7 => Box::new(invokespecial::INVOKE_SPECIAL {}),
-    //  0xb8 => INVOKE_STATIC
-    //  0xb9 => INVOKE_INTERFACE
+    0xb8 => Box::new(invokestatic::INVOKE_STATIC {}),
+    0xb9 => Box::new(invokeinterface::INVOKE_INTERFACE {}),
+
     //  0xba => INVOKE_DYNAMIC
     0xbb => Box::new(new::NEW {}),
     //  0xbc => NEW_ARRAY

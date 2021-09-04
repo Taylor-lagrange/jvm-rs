@@ -1,9 +1,13 @@
 use super::class::*;
 use crate::runtime::local_vars::*;
 use std::cell::RefCell;
-use std::rc::Weak;
+use std::rc::{Rc, Weak};
 
-#[derive(Clone)]
+// pub enum ObjectData<'a> {
+//   // Array(Vec<T>),
+//   Field(FieldVar<'a>),
+// }
+
 pub struct Object<'a> {
   pub class: Weak<RefCell<Class<'a>>>,
   pub field: FieldVar<'a>,
@@ -15,6 +19,9 @@ impl<'a> Object<'a> {
       class: class.clone(),
       field: FieldVar::new(class.upgrade().unwrap().borrow().instance_slot_count as usize),
     }
+  }
+  pub fn new_object(class: &Rc<RefCell<Class<'a>>>) -> Rc<RefCell<Object<'a>>> {
+    Rc::new(RefCell::new(Object::new(Rc::downgrade(class))))
   }
   pub fn is_instance_of(&self, class: Weak<RefCell<Class<'a>>>) -> bool {
     class

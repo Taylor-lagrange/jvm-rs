@@ -99,6 +99,45 @@ impl<'a> MethodRef<'a> {
     mr.member_ref.copy_member_ref_info(pool, ref_info);
     mr
   }
+  pub fn resolve_method(&mut self) -> Weak<RefCell<Method<'a>>> {
+    if let Option::None = self.methods.upgrade() {
+      let c = self.member_ref.sym_ref.resolved_class();
+      let methods =
+        MethodRef::lookup_methods(c, &self.member_ref.name, &self.member_ref.descriptor);
+      if let Option::None = methods.upgrade() {
+        panic!("java.lang.NoSuchMethodError");
+      }
+      let rc = self
+        .member_ref
+        .sym_ref
+        .constant_pool
+        .clone()
+        .upgrade()
+        .unwrap();
+      if !methods
+        .upgrade()
+        .unwrap()
+        .borrow()
+        .class_member
+        .is_accessible_to(rc.borrow().class.clone())
+      {
+        panic!("java.lang.IllegalAccessError");
+      }
+      self.methods = methods;
+    }
+    self.methods.clone()
+  }
+  fn lookup_methods(
+    c: Weak<RefCell<Class<'a>>>,
+    name: &String,
+    descriptor: &String,
+  ) -> Weak<RefCell<Method<'a>>> {
+    let mut method = lookup_method_in_class(c.clone(), name, descriptor);
+    if method.upgrade().is_none() {
+      method = lookup_method_in_interfaces(c, name, descriptor);
+    }
+    method
+  }
 }
 
 #[derive(Default, Clone)]
@@ -117,6 +156,60 @@ impl<'a> InterfaceMethodRef<'a> {
     mr.member_ref.sym_ref.constant_pool = cp;
     mr.member_ref.copy_member_ref_info(pool, ref_info);
     mr
+  }
+  pub fn resolve_interface_method(&mut self) -> Weak<RefCell<Method<'a>>> {
+    if let Option::None = self.methods.upgrade() {
+      let c = self.member_ref.sym_ref.resolved_class();
+      {
+        let rc = c.clone().upgrade().unwrap();
+        let class = rc.borrow();
+        if !class.is_interface() {
+          panic!("java.lang.IncompatibleClassChangeError");
+        }
+      }
+      let methods = InterfaceMethodRef::lookup_interface_methods(
+        c,
+        &self.member_ref.name,
+        &self.member_ref.descriptor,
+      );
+      if let Option::None = methods.upgrade() {
+        panic!("java.lang.NoSuchMethodError");
+      }
+      let rc = self
+        .member_ref
+        .sym_ref
+        .constant_pool
+        .clone()
+        .upgrade()
+        .unwrap();
+      if !methods
+        .upgrade()
+        .unwrap()
+        .borrow()
+        .class_member
+        .is_accessible_to(rc.borrow().class.clone())
+      {
+        panic!("java.lang.IllegalAccessError");
+      }
+      self.methods = methods;
+    }
+    self.methods.clone()
+  }
+  fn lookup_interface_methods(
+    c: Weak<RefCell<Class<'a>>>,
+    name: &String,
+    descriptor: &String,
+  ) -> Weak<RefCell<Method<'a>>> {
+    let rc = c.clone().upgrade().unwrap();
+    let class = rc.borrow();
+    for info in class.methods.iter() {
+      if info.borrow().class_member.descriptor == *descriptor
+        && info.borrow().class_member.name == *name
+      {
+        return Rc::downgrade(&info);
+      }
+    }
+    lookup_method_in_interfaces(c, name, descriptor)
   }
 }
 

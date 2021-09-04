@@ -24,6 +24,7 @@ pub struct Class<'a> {
 	pub instance_slot_count: u32,
 	pub static_slot_count: u32,
 	pub static_vars: StaticFinalVar<'a>,
+	pub init_started: bool,
 }
 
 impl<'a> Class<'a> {
@@ -45,6 +46,15 @@ impl<'a> Class<'a> {
 				Method::new_methods(Rc::downgrade(&class), &cf.constant_pool, cf.methods);
 		}
 		class
+	}
+	pub fn init_started(class: &Weak<RefCell<Class>>) -> bool {
+		let we = class.clone().upgrade();
+		if we.is_none() {
+			return false;
+		}
+		let rc = we.unwrap();
+		let class_instance = rc.borrow();
+		class_instance.init_started
 	}
 	pub fn is_public(&self) -> bool {
 		self.access_flags & ACC_PUBLIC != 0
@@ -97,10 +107,9 @@ impl<'a> Class<'a> {
 	pub fn get_main_method(&self) -> Weak<RefCell<Method<'a>>> {
 		self.get_static_method(&"main".to_string(), &"([Ljava/lang/String;)V".to_string())
 	}
-	pub fn new_object(class: &Rc<RefCell<Class<'a>>>) -> Rc<RefCell<Object<'a>>> {
-		Rc::new(RefCell::new(Object::new(Rc::downgrade(class))))
+	pub fn get_clinit_method(&self) -> Weak<RefCell<Method<'a>>> {
+		self.get_static_method(&"<clinit>".to_string(), &"()V".to_string())
 	}
-
 	pub fn is_assignable_from(&self, iface: Weak<RefCell<Class<'a>>>) -> bool {
 		let i = iface.upgrade().unwrap();
 		let class = i.borrow();
@@ -124,7 +133,7 @@ impl<'a> Class<'a> {
 		}
 		false
 	}
-	fn is_implements(&self, iface: Weak<RefCell<Class<'a>>>) -> bool {
+	pub fn is_implements(&self, iface: Weak<RefCell<Class<'a>>>) -> bool {
 		if self.is_sub_interface_of(iface.clone()) {
 			return true;
 		}

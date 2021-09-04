@@ -35,11 +35,15 @@ impl<'a> Frame<'a> {
       next_pc: 0,
     }
   }
+  pub fn revert_pc(&mut self) {
+    let rc = self.thread.clone().upgrade().unwrap();
+    self.next_pc = rc.borrow().pc as usize;
+  }
 }
 
 pub struct Stack<'a> {
   pub max_size: usize,
-  pub frame_list: List<Frame<'a>>,
+  pub frame_list: List<Rc<RefCell<Frame<'a>>>>,
 }
 
 impl<'a> Stack<'a> {
@@ -49,25 +53,28 @@ impl<'a> Stack<'a> {
       frame_list: List::new(),
     }
   }
-  pub fn push(&mut self, frame: Frame<'a>) {
+  pub fn push(&mut self, frame: Rc<RefCell<Frame<'a>>>) {
     if self.frame_list.size >= self.max_size as i32 {
       panic!("java.lang.StackOverflowError");
     }
     self.frame_list.push(frame)
   }
-  pub fn pop(&mut self) -> Frame<'a> {
+  pub fn pop(&mut self) -> Rc<RefCell<Frame<'a>>> {
     let data = self.frame_list.pop();
     match data {
       Some(frame) => frame,
       None => panic!("jvm stack is empty!"),
     }
   }
-  pub fn top(&mut self) -> &mut Frame<'a> {
+  pub fn top(&mut self) -> Rc<RefCell<Frame<'a>>> {
     let data = self.frame_list.peek_mut();
     match data {
-      Some(frame) => frame,
+      Some(frame) => frame.clone(),
       None => panic!("jvm stack is empty!"),
     }
+  }
+  pub fn is_empty(&self) -> bool {
+    self.frame_list.is_empty()
   }
 }
 
@@ -83,7 +90,10 @@ impl<'a> Thread<'a> {
       stack: Stack::new(1024),
     }))
   }
-  pub fn new_frame(thread: Weak<RefCell<Thread<'a>>>, method: Rc<RefCell<Method<'a>>>) -> Frame<'a> {
-    Frame::new(method, thread)
+  pub fn new_frame(
+    thread: Weak<RefCell<Thread<'a>>>,
+    method: Rc<RefCell<Method<'a>>>,
+  ) -> Rc<RefCell<Frame<'a>>> {
+    Rc::new(RefCell::new(Frame::new(method, thread)))
   }
 }

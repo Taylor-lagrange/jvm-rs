@@ -36,6 +36,22 @@ impl<T> List<T> {
         })
     }
 
+    pub fn get_elem(&self, n: usize) -> Option<&T> {
+        let mut iter = &self.head;
+        for _ in 0..n {
+            if let Some(val) = iter {
+                iter = &val.next;
+            } else {
+                return None;
+            }
+        }
+        iter.as_ref().map(|node| &node.elem)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.size == 0
+    }
+
     pub fn peek(&self) -> Option<&T> {
         //map函数会消耗传入的node，也就是把原来的node移出head，Option to a reference to the value inside the original.
         self.head.as_ref().map(|node| &node.elem)

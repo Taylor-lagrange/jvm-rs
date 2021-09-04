@@ -1,6 +1,8 @@
 use crate::instructions::base::bytecode_reader::*;
 use crate::instructions::base::instruction::*;
 use crate::runtime::heap::constant_pool::*;
+use crate::instructions::base::class_init::*;
+use crate::runtime::heap::class::*;
 use crate::runtime::thread::*;
 
 pub struct GET_STATIC {}
@@ -26,7 +28,11 @@ impl Instruction for GET_STATIC {
     if let ConstantInfoRunTime::Fieldref(mut refs) = info {
       let field = refs.resolve_field();
       let class = refs.member_ref.sym_ref.resolved_class();
-      //TODO:init class
+      if !Class::init_started(&class) {
+        frame.revert_pc();
+        init_class(frame.thread.clone(), class.clone());
+        return;
+      }
       let rc = field.clone().upgrade().unwrap();
       let field_instance = rc.borrow();
       if !field_instance.class_member.is_static() {

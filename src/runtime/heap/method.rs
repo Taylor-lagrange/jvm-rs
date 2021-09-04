@@ -1,18 +1,20 @@
 use super::access_flags::*;
 use super::class::*;
 use super::class_member::*;
+use super::method_descriptor_parser::*;
 use crate::classfile::attribute_info::*;
 use crate::classfile::constant_pool::*;
 use crate::classfile::member_info::*;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
-#[derive(Default,Clone)]
+#[derive(Default, Clone)]
 pub struct Method<'a> {
   pub class_member: ClassMember<'a>,
   pub max_stack: u32,
   pub max_locals: u32,
-  pub code: Vec<u8>,
+  pub code: Rc<Vec<u8>>,
+  pub arg_slot_count: u32,
 }
 
 impl<'a> Method<'a> {
@@ -44,15 +46,28 @@ impl<'a> Method<'a> {
       max_stack,
       max_locals,
       code,
-      exception_table,
-      attributes,
+      ..
     } = member_info.code_attribute()
     {
-      method.code = code;
+      method.code = Rc::new(code);
       method.max_locals = max_locals as u32;
       method.max_stack = max_stack as u32;
     }
+    method.calc_arg_slot_count();
     method
+  }
+
+  fn calc_arg_slot_count(&mut self) {
+    let parsed_descriptor = MethodDescriptorParser::parse(self.class_member.descriptor.clone());
+    for param in parsed_descriptor.parameter_type {
+      self.arg_slot_count += 1;
+      if param == "J" || param == "D" {
+        self.arg_slot_count += 1;
+      }
+    }
+    if !self.class_member.is_static() {
+      self.arg_slot_count += 1; // `this` reference
+    }
   }
 
   pub fn is_synchronized(&self) -> bool {
@@ -73,4 +88,54 @@ impl<'a> Method<'a> {
   pub fn is_strict(&self) -> bool {
     self.class_member.access_flags & ACC_STRICT != 0
   }
+}
+
+pub fn lookup_method_in_class<'a>(
+  c: Weak<RefCell<Class<'a>>>,
+  name: &String,
+  descriptor: &String,
+) -> Weak<RefCell<Method<'a>>> {
+  let mut iter_class = c;
+  loop {
+    let we = iter_class.upgrade();
+    if we.is_none() {
+      break;
+    }
+    let rc = we.unwrap();
+    let class = rc.borrow();
+    for info in class.methods.iter() {
+      if info.borrow().class_member.descriptor == *descriptor
+        && info.borrow().class_member.name == *name
+      {
+        return Rc::downgrade(&info);
+      }
+    }
+    iter_class = class.super_class.clone();
+  }
+  Weak::new()
+}
+
+pub fn lookup_method_in_interfaces<'a>(
+  c: Weak<RefCell<Class<'a>>>,
+  name: &String,
+  descriptor: &String,
+) -> Weak<RefCell<Method<'a>>> {
+  let rc = c.upgrade().unwrap();
+  let class = rc.borrow();
+  for iface in class.interfaces.iter() {
+    let rc = iface.clone().upgrade().unwrap();
+    let iface_class = rc.borrow();
+    for info in iface_class.methods.iter() {
+      if info.borrow().class_member.descriptor == *descriptor
+        && info.borrow().class_member.name == *name
+      {
+        return Rc::downgrade(&info);
+      }
+    }
+    let method = lookup_method_in_interfaces(iface.clone(), name, descriptor);
+    if method.upgrade().is_some() {
+      return method;
+    }
+  }
+  Weak::new()
 }

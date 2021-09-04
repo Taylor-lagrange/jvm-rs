@@ -60,25 +60,33 @@ pub enum ConstantInfo {
 
 pub struct ConstantPool {
   pub pool: Vec<ConstantInfo>,
-  pub pool_count: isize,
+  pub pool_count: usize,
 }
 
 impl ConstantPool {
   pub fn new(reader: &mut ClassReader) -> ConstantPool {
+    let count = reader.read_u16() as usize;
     let mut cp = ConstantPool {
-      pool_count: reader.read_u16() as isize,
-      pool: Vec::new(),
+      pool_count: count,
+      pool: Vec::with_capacity(count),
     };
-    cp.pool.push(ConstantInfo::Nil);
-    for _ in 1..cp.pool_count {
-      let info = ConstantInfo::get_constant_info(reader);
-      cp.pool.push(info.clone());
+    for _ in 0..count {
+      cp.pool.push(ConstantInfo::Nil);
+    }
+    let mut i = 1;
+    while i < cp.pool_count {
+      cp.pool[i] = ConstantInfo::get_constant_info(reader);
       // long double占两个位置
-      match info {
-        ConstantInfo::Long { .. } => cp.pool.push(ConstantInfo::Nil),
-        ConstantInfo::Double { .. } => cp.pool.push(ConstantInfo::Nil),
+      match cp.pool[i] {
+        ConstantInfo::Long { .. } => {
+          i += 1;
+        }
+        ConstantInfo::Double { .. } => {
+          i += 1;
+        }
         _ => {}
       };
+      i += 1;
     }
     cp
   }

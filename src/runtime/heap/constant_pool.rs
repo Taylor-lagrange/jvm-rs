@@ -60,11 +60,9 @@ impl<'a> ConstantPool<'a> {
         ConstantInfo::Float { val } => v.push(ConstantInfoRunTime::Float(val)),
         ConstantInfo::Long { val } => {
           v.push(ConstantInfoRunTime::Long(val));
-          v.push(ConstantInfoRunTime::Nil)
         }
         ConstantInfo::Double { val } => {
           v.push(ConstantInfoRunTime::Double(val));
-          v.push(ConstantInfoRunTime::Nil)
         }
         _ => v.push(ConstantInfoRunTime::Nil),
       };
