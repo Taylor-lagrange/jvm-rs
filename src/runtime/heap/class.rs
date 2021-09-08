@@ -1,9 +1,9 @@
 use super::access_flags::*;
 use super::class_loader::*;
+use super::class_name_helper::*;
 use super::constant_pool::*;
 use super::field::*;
 use super::method::*;
-use super::object::*;
 use crate::classfile::class_file::*;
 use crate::runtime::local_vars::*;
 use std::cell::RefCell;
@@ -93,6 +93,28 @@ impl<'a> Class<'a> {
 			None => "".to_string(),
 		}
 	}
+	pub fn get_field(
+		&self,
+		name: &String,
+		descriptor: &String,
+		is_static: bool,
+	) -> Rc<RefCell<Field<'a>>> {
+		for field in self.fields.iter() {
+			if field.borrow().class_member.is_static() == is_static
+				&& field.borrow().class_member.name == *name
+				&& field.borrow().class_member.descriptor == *descriptor
+			{
+				return field.clone();
+			}
+		}
+		//recursive find field in class, so it not violate the borrow-checker
+		let super_class = self.super_class.clone().upgrade();
+		if super_class.is_none() {
+			panic!("no field match require in current class!");
+		}
+		let rc = super_class.unwrap();
+		return rc.borrow().get_field(name, descriptor, is_static);
+	}
 	fn get_static_method(&self, name: &String, descriptor: &String) -> Weak<RefCell<Method<'a>>> {
 		for info in self.methods.iter() {
 			if info.borrow().class_member.is_static()
@@ -110,6 +132,12 @@ impl<'a> Class<'a> {
 	pub fn get_clinit_method(&self) -> Weak<RefCell<Method<'a>>> {
 		self.get_static_method(&"<clinit>".to_string(), &"()V".to_string())
 	}
+	// 数组可以强制转换成 Object类型（因为数组的超类是 Object）
+	// 数组可以强制转换成 Cloneable 和 Serializable 类型（因为数组实现了这两个接口）
+	// 如果下⾯两个条件之⼀成⽴，类型为[]SC的数组可以强制转换成类型为[]TC的数组
+	// 1. TC 和 SC 是同⼀个基本类型
+	// 2. TC 和 SC 都是引用类型，且 SC 可以强制转换成 TC
+	// TODO: 需要修改 is_assignable_from 的逻辑从而让 instanceof 和 checkcast 指令正常工作
 	pub fn is_assignable_from(&self, iface: Weak<RefCell<Class<'a>>>) -> bool {
 		let i = iface.upgrade().unwrap();
 		let class = i.borrow();
@@ -122,6 +150,9 @@ impl<'a> Class<'a> {
 		} else {
 			class.is_implements(Rc::downgrade(&temp_self_class))
 		}
+	}
+	pub fn is_array(&self) -> bool {
+		self.name.starts_with('[')
 	}
 	pub fn is_sub_class_of(&self, class: Weak<RefCell<Class<'a>>>) -> bool {
 		let mut super_class = self.super_class.clone();
@@ -156,5 +187,25 @@ impl<'a> Class<'a> {
 			}
 		}
 		false
+	}
+	pub fn get_array_class(class: Weak<RefCell<Class>>) -> Weak<RefCell<Class>> {
+		let loader;
+		let array_class_name;
+		{
+			let rc = class.upgrade().unwrap();
+			loader = rc.borrow().loader.clone();
+			array_class_name = get_array_class_name(rc.borrow().name.to_owned());
+		}
+		ClassLoader::load_class(loader, &array_class_name)
+	}
+	pub fn component_class(class: Weak<RefCell<Class>>) -> Weak<RefCell<Class>> {
+		let loader;
+		let array_class_name;
+		{
+			let rc = class.upgrade().unwrap();
+			loader = rc.borrow().loader.clone();
+			array_class_name = get_component_class_name(rc.borrow().name.to_owned());
+		}
+		ClassLoader::load_class(loader, &array_class_name)
 	}
 }

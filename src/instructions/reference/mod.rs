@@ -1,3 +1,5 @@
+pub mod anewarray;
+pub mod arraylength;
 pub mod checkcast;
 pub mod getfield;
 pub mod getstatic;
@@ -6,6 +8,8 @@ pub mod invokeinterface;
 pub mod invokespecial;
 pub mod invokestatic;
 pub mod invokevirtual;
+pub mod multianewarray;
 pub mod new;
+pub mod newarray;
 pub mod putfield;
 pub mod putstatic;

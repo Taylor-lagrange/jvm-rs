@@ -1,3 +1,4 @@
+use super::access_flags::*;
 use super::class::*;
 use super::constant_pool::*;
 use crate::classfile::class_file::*;
@@ -38,10 +39,38 @@ impl<'a> ClassLoader<'a> {
         return class;
       }
     }
+    if name.starts_with('[') {
+      return ClassLoader::load_array_class(loader, name);
+    }
     // use {} to mark the borrow range of loader_instance,
     // because loader will be borrow once again in load_non_array_class
     // so before excute load_non_array_class, the borrow of loader must finish
-    return ClassLoader::load_non_array_class(loader, name);
+    ClassLoader::load_non_array_class(loader, name)
+  }
+  fn load_array_class(
+    loader: Weak<RefCell<ClassLoader<'a>>>,
+    name: &String,
+  ) -> Weak<RefCell<Class<'a>>> {
+    let class = Rc::new(RefCell::new(Class {
+      access_flags: ACC_PUBLIC,
+      name: name.to_owned(),
+      loader: loader.clone(),
+      init_started: true,
+      super_class: ClassLoader::load_class(loader.clone(), &"java/lang/Object".to_string()),
+      interfaces: vec![
+        ClassLoader::load_class(loader.clone(), &"java/lang/Cloneable".to_string()),
+        ClassLoader::load_class(loader.clone(), &"java/io/Serializable".to_string()),
+      ],
+      ..Default::default()
+    }));
+    {
+      let rc = loader.upgrade().unwrap();
+      let mut class_loader = rc.borrow_mut();
+      class_loader
+        .class_map
+        .insert(class.borrow().name.clone(), class.clone());
+    }
+    Rc::downgrade(&class)
   }
   fn load_non_array_class(
     loader: Weak<RefCell<ClassLoader<'a>>>,

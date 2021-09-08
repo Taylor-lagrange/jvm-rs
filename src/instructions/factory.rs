@@ -71,14 +71,15 @@ pub fn new_instruction(opcode: u8) -> Box<dyn Instruction> {
     0x2c => Box::new(aload::ALOAD_2 {}),
     0x2d => Box::new(aload::ALOAD_3 {}),
 
-    // 0x2e => iaload,
-    // 0x2f => laload,
-    // 0x30 => faload,
-    // 0x31 => daload,
-    // 0x32 => aaload,
-    // 0x33 => baload,
-    // 0x34 => caload,
-    // 0x35 => saload,
+    0x2e => Box::new(xload::IALOAD {}),
+    0x2f => Box::new(xload::LALOAD {}),
+    0x30 => Box::new(xload::FALOAD {}),
+    0x31 => Box::new(xload::DALOAD {}),
+    0x32 => Box::new(xload::AALOAD {}),
+    0x33 => Box::new(xload::BALOAD {}),
+    0x34 => Box::new(xload::CALOAD {}),
+    0x35 => Box::new(xload::SALOAD {}),
+
     0x36 => Box::new(istore::ISTORE {}),
     0x37 => Box::new(lstore::LSTORE {}),
     0x38 => Box::new(fstore::FSTORE {}),
@@ -110,14 +111,15 @@ pub fn new_instruction(opcode: u8) -> Box<dyn Instruction> {
     0x4d => Box::new(astore::ASTORE_2 {}),
     0x4e => Box::new(astore::ASTORE_3 {}),
 
-    // 0x4f => iastore,
-    // 0x50 => lastore,
-    // 0x51 => fastore,
-    // 0x52 => dastore,
-    // 0x53 => aastore,
-    // 0x54 => bastore,
-    // 0x55 => castore,
-    // 0x56 => sastore,
+    0x4f => Box::new(xastore::IASTORE {}),
+    0x50 => Box::new(xastore::LASTORE {}),
+    0x51 => Box::new(xastore::FASTORE {}),
+    0x52 => Box::new(xastore::DASTORE {}),
+    0x53 => Box::new(xastore::AASTORE {}),
+    0x54 => Box::new(xastore::BASTORE {}),
+    0x55 => Box::new(xastore::CASTORE {}),
+    0x56 => Box::new(xastore::SASTORE {}),
+
     0x57 => Box::new(pop::POP {}),
     0x58 => Box::new(pop::POP2 {}),
     0x59 => Box::new(dup::DUP {}),
@@ -245,16 +247,18 @@ pub fn new_instruction(opcode: u8) -> Box<dyn Instruction> {
 
     //  0xba => INVOKE_DYNAMIC
     0xbb => Box::new(new::NEW {}),
-    //  0xbc => NEW_ARRAY
-    //  0xbd => ANEW_ARRAY
-    //  0xbe => arraylength
+
+    0xbc => Box::new(newarray::NEW_ARRAY {}),
+    0xbd => Box::new(anewarray::ANEW_ARRAY {}),
+    0xbe => Box::new(arraylength::ARRAY_LENGTH {}),
+
     //  0xbf => athrow
     0xc0 => Box::new(checkcast::CHECK_CAST {}),
     0xc1 => Box::new(instanceof::INSTANCE_OF {}),
     //  0xc2 => monitorenter
     //  0xc3 => monitorexit
     //  0xc4 => WIDE
-    //  0xc5 => MULTI_ANEW_ARRAY
+    0xc5 => Box::new(multianewarray::MULTI_ANEW_ARRAY {}),
     0xc6 => Box::new(ifnull::IFNULL {}),
     0xc7 => Box::new(ifnull::IFNONNULL {}),
     0xc8 => Box::new(goto_w::GOTO_W {}),

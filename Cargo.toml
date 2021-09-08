@@ -13,3 +13,4 @@ walkdir = "2"
 log = "0.4.8"
 log4rs = "0.10.0"
 byteorder = "1.2.7"
+phf = { version = "0.9", features = ["macros"] }

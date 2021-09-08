@@ -1,6 +1,7 @@
 use crate::instructions::base::bytecode_reader::*;
 use crate::instructions::base::instruction::*;
 use crate::runtime::heap::constant_pool::*;
+use crate::runtime::heap::object::*;
 use crate::runtime::thread::*;
 use std::rc::Rc;
 
@@ -58,7 +59,10 @@ impl Instruction for PUT_FIELD {
           if re.is_none() {
             panic!("java.lang.NullPointerException");
           }
-          re.unwrap().borrow_mut().field.set_int(slot_id, val);
+          if let ObjectData::Field(field) = &mut re.unwrap().borrow_mut().data {
+            field.set_int(slot_id, val);
+          }
+          // re.unwrap().borrow_mut().data.field.set_int(slot_id, val);
         }
         'F' => {
           let val = frame.operand_stack.pop_float();
@@ -66,7 +70,10 @@ impl Instruction for PUT_FIELD {
           if re.is_none() {
             panic!("java.lang.NullPointerException");
           }
-          re.unwrap().borrow_mut().field.set_float(slot_id, val);
+          if let ObjectData::Field(field) = &mut re.unwrap().borrow_mut().data {
+            field.set_float(slot_id, val);
+          }
+          // re.unwrap().borrow_mut().data.field.set_float(slot_id, val);
         }
         'J' => {
           let val = frame.operand_stack.pop_long();
@@ -74,7 +81,10 @@ impl Instruction for PUT_FIELD {
           if re.is_none() {
             panic!("java.lang.NullPointerException");
           }
-          re.unwrap().borrow_mut().field.set_long(slot_id, val);
+          if let ObjectData::Field(field) = &mut re.unwrap().borrow_mut().data {
+            field.set_long(slot_id, val);
+          }
+          // re.unwrap().borrow_mut().data.field.set_long(slot_id, val);
         }
         'D' => {
           let val = frame.operand_stack.pop_double();
@@ -82,7 +92,10 @@ impl Instruction for PUT_FIELD {
           if re.is_none() {
             panic!("java.lang.NullPointerException");
           }
-          re.unwrap().borrow_mut().field.set_double(slot_id, val);
+          if let ObjectData::Field(field) = &mut re.unwrap().borrow_mut().data {
+            field.set_double(slot_id, val);
+          }
+          // re.unwrap().borrow_mut().data.field.set_double(slot_id, val);
         }
         'L' | '[' => {
           let val = frame.operand_stack.pop_ref();
@@ -90,7 +103,10 @@ impl Instruction for PUT_FIELD {
           if re.is_none() {
             panic!("java.lang.NullPointerException");
           }
-          re.unwrap().borrow_mut().field.set_ref(slot_id, val);
+          if let ObjectData::Field(field) = &mut re.unwrap().borrow_mut().data {
+            field.set_ref(slot_id, val);
+          }
+          // re.unwrap().borrow_mut().data.field.set_ref(slot_id, val);
         }
         _ => panic!("todo"),
       }

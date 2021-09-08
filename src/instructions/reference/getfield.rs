@@ -1,6 +1,7 @@
 use crate::instructions::base::bytecode_reader::*;
 use crate::instructions::base::instruction::*;
 use crate::runtime::heap::constant_pool::*;
+use crate::runtime::heap::object::*;
 use crate::runtime::thread::*;
 
 pub struct GET_FIELD {}
@@ -42,21 +43,51 @@ impl Instruction for GET_FIELD {
         .nth(0)
         .unwrap()
       {
-        'z' | 'B' | 'C' | 'S' | 'I' => frame
-          .operand_stack
-          .push_int(target_ref.unwrap().borrow_mut().field.get_int(slot_id)),
-        'F' => frame
-          .operand_stack
-          .push_float(target_ref.unwrap().borrow_mut().field.get_float(slot_id)),
-        'J' => frame
-          .operand_stack
-          .push_long(target_ref.unwrap().borrow_mut().field.get_long(slot_id)),
-        'D' => frame
-          .operand_stack
-          .push_double(target_ref.unwrap().borrow_mut().field.get_double(slot_id)),
-        'L' | '[' => frame
-          .operand_stack
-          .push_ref(target_ref.unwrap().borrow_mut().field.get_ref(slot_id)),
+        'z' | 'B' | 'C' | 'S' | 'I' => {
+          let val;
+          if let ObjectData::Field(field) = &target_ref.unwrap().borrow().data {
+            val = field.get_int(slot_id);
+          } else {
+            panic!("no a field in object data");
+          }
+          frame.operand_stack.push_int(val)
+        }
+        'F' => {
+          let val;
+          if let ObjectData::Field(field) = &target_ref.unwrap().borrow().data {
+            val = field.get_float(slot_id);
+          } else {
+            panic!("no a field in object data");
+          }
+          frame.operand_stack.push_float(val)
+        }
+        'J' => {
+          let val;
+          if let ObjectData::Field(field) = &target_ref.unwrap().borrow().data {
+            val = field.get_long(slot_id);
+          } else {
+            panic!("no a field in object data");
+          }
+          frame.operand_stack.push_long(val)
+        }
+        'D' => {
+          let val;
+          if let ObjectData::Field(field) = &target_ref.unwrap().borrow().data {
+            val = field.get_double(slot_id);
+          } else {
+            panic!("no a field in object data");
+          }
+          frame.operand_stack.push_double(val)
+        }
+        'L' | '[' => {
+          let val;
+          if let ObjectData::Field(field) = &target_ref.unwrap().borrow().data {
+            val = field.get_ref(slot_id);
+          } else {
+            panic!("no a field in object data");
+          }
+          frame.operand_stack.push_ref(val)
+        }
         _ => panic!("todo"),
       }
     }

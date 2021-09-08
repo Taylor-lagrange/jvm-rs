@@ -21,7 +21,7 @@ impl<'a> LocalVars<'a> {
   pub fn set_int(&mut self, index: usize, val: i32) {
     self.0[index] = Slot::Num(val)
   }
-  pub fn get_int(&mut self, index: usize) -> i32 {
+  pub fn get_int(&self, index: usize) -> i32 {
     if let Slot::Num(num) = self.0[index] {
       num
     } else {
@@ -31,7 +31,7 @@ impl<'a> LocalVars<'a> {
   pub fn set_float(&mut self, index: usize, val: f32) {
     self.0[index] = Slot::Num(val.to_bits() as i32)
   }
-  pub fn get_float(&mut self, index: usize) -> f32 {
+  pub fn get_float(&self, index: usize) -> f32 {
     if let Slot::Num(num) = self.0[index] {
       let data: f32 = unsafe { transmute(num) };
       data
@@ -43,7 +43,7 @@ impl<'a> LocalVars<'a> {
     self.0[index] = Slot::Num(val as i32);
     self.0[index + 1] = Slot::Num((val >> 32) as i32);
   }
-  pub fn get_long(&mut self, index: usize) -> i64 {
+  pub fn get_long(&self, index: usize) -> i64 {
     let low: u32;
     let high: u32;
     if let Slot::Num(num) = self.0[index] {
@@ -62,14 +62,14 @@ impl<'a> LocalVars<'a> {
     let data: i64 = unsafe { transmute(val) };
     self.set_long(index, data)
   }
-  pub fn get_double(&mut self, index: usize) -> f64 {
+  pub fn get_double(&self, index: usize) -> f64 {
     let data = self.get_long(index);
     unsafe { transmute(data) }
   }
   pub fn set_ref(&mut self, index: usize, ref_object: Option<Rc<RefCell<Object<'a>>>>) {
     self.0[index] = Slot::RefObject(ref_object);
   }
-  pub fn get_ref(&mut self, index: usize) -> Option<Rc<RefCell<Object<'a>>>> {
+  pub fn get_ref(&self, index: usize) -> Option<Rc<RefCell<Object<'a>>>> {
     match &self.0[index] {
       Slot::RefObject(object) => {
         if let Some(obj) = object {
