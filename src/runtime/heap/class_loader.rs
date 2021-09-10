@@ -5,6 +5,7 @@ use crate::classfile::class_file::*;
 use crate::classpath::classpath::*;
 use crate::classpath::entry::Entry;
 use crate::runtime::local_vars::*;
+use crate::runtime::heap::string_pool::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::{Rc, Weak};
@@ -164,6 +165,7 @@ impl<'a> ClassLoader<'a> {
   }
   fn alloc_and_init_static_vars(class: Rc<RefCell<Class<'a>>>) {
     let mut class_instance = class.borrow_mut();
+    let loader = class_instance.loader.clone();
     let mut v = StaticFinalVar::new(class_instance.static_slot_count as usize);
     let pool_clone = class_instance.constant_pool.clone().unwrap();
     let mut pool = pool_clone.borrow_mut();
@@ -200,7 +202,14 @@ impl<'a> ClassLoader<'a> {
                 v.set_double(field.slot_id as usize, *val);
               }
             }
-            "Ljava/lang/String;" => panic!("todo"),
+            "Ljava/lang/String;" => {
+              if let ConstantInfoRunTime::String(val) =
+                pool.get_constant_info(field.const_value_index as usize)
+              {
+                let s_obj = j_string(loader.clone(), &val);
+                v.set_ref(field.slot_id as usize, Some(s_obj));
+              }
+            },
             _ => panic!("unkown descriptor"),
           }
         }

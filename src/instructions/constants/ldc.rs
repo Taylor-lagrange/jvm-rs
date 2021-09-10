@@ -1,6 +1,7 @@
 use crate::instructions::base::bytecode_reader::*;
 use crate::instructions::base::instruction::*;
 use crate::runtime::heap::constant_pool::*;
+use crate::runtime::heap::string_pool::*;
 use crate::runtime::thread::*;
 
 pub struct LDC {} // Push item from run-time constant pool
@@ -12,20 +13,25 @@ impl Index16Instruction for LDC_W {}
 impl Index16Instruction for LDC2_W {}
 
 fn ldc(frame: &mut Frame, index: usize) {
-  let rc = frame.method.borrow_mut().class_member.class.clone();
-  let pool_rc = rc
-    .upgrade()
-    .unwrap()
-    .borrow_mut()
-    .constant_pool
-    .clone()
-    .unwrap();
+  let loader;
+  let pool_rc;
+  {
+    let rc = frame.method.borrow_mut().class_member.class.clone();
+    let class = rc.upgrade().unwrap();
+    let instance = class.borrow_mut();
+    pool_rc = instance.constant_pool.clone().unwrap();
+    loader = instance.loader.clone();
+  }
   let mut cp = pool_rc.borrow_mut();
   match cp.get_constant_info(index) {
     ConstantInfoRunTime::Integer(val) => frame.operand_stack.push_int(*val),
     ConstantInfoRunTime::Float(val) => frame.operand_stack.push_float(*val),
     ConstantInfoRunTime::Long(val) => frame.operand_stack.push_long(*val),
     ConstantInfoRunTime::Double(val) => frame.operand_stack.push_double(*val),
+    ConstantInfoRunTime::String(s) => {
+      let s_obj = j_string(loader, &s);
+      frame.operand_stack.push_ref(Some(s_obj));
+    }
     _ => panic!("todo"),
   }
 }

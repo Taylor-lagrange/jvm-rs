@@ -9,5 +9,6 @@ pub mod interpreter;
 mod loads;
 mod math;
 mod reference;
+mod reserved;
 mod stack;
 mod stores;

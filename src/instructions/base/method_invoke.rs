@@ -18,13 +18,12 @@ pub fn invoke_method<'a>(frame: &mut Frame<'a>, method: Rc<RefCell<Method<'a>>>)
   }
   thread.stack.push(new_frame);
 
-  let method_instance = method.borrow();
-
-  if method_instance.is_native() {
-    if method_instance.class_member.name == "registerNatives" {
-      thread.stack.pop();
-    } else {
-      panic!("native method: {}\n", method_instance.class_member.name);
-    }
-  }
+  // let method_instance = method.borrow();
+  // if method_instance.is_native() {
+  //   if method_instance.class_member.name == "registerNatives" {
+  //     thread.stack.pop();
+  //   } else {
+  //     panic!("native method: {}\n", method_instance.class_member.name);
+  //   }
+  // }
 }

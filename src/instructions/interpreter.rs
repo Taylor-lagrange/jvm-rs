@@ -1,15 +1,40 @@
 use super::factory::*;
 use crate::instructions::base::bytecode_reader::*;
+use crate::runtime::heap::class_loader::*;
 use crate::runtime::heap::method::*;
+use crate::runtime::heap::object::*;
+use crate::runtime::heap::string_pool::*;
 use crate::runtime::thread::*;
 use std::cell::RefCell;
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 
-pub fn interpret<'a>(method: Rc<RefCell<Method<'a>>>) {
+pub fn interpret<'a>(method: Rc<RefCell<Method<'a>>>, args: Vec<String>) {
+  let loader;
+  {
+    let rc = method.borrow().class_member.class.clone();
+    loader = rc.upgrade().unwrap().borrow().loader.clone();
+  }
+  let j_args = create_args_array(loader, args);
   let thread = Thread::new();
   let frame = Thread::new_frame(Rc::downgrade(&thread), method.clone());
+  frame
+    .borrow_mut()
+    .local_vars
+    .set_ref(0, Some(Rc::new(RefCell::new(j_args))));
   thread.borrow_mut().stack.push(frame);
+
   run(thread);
+}
+
+pub fn create_args_array(loader: Weak<RefCell<ClassLoader>>, args: Vec<String>) -> Object {
+  let string_class = ClassLoader::load_class(loader.clone(), &"java/lang/String".to_string());
+  let mut args_arr = Object::new_array(string_class, args.len());
+  if let ObjectData::ArrayRefs(j_args) = &mut args_arr.data {
+    for i in 0..args.len() {
+      j_args[i] = j_string(loader.clone(), &args[i]);
+    }
+  }
+  args_arr
 }
 
 pub fn run(thread: Rc<RefCell<Thread>>) {

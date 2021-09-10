@@ -3,9 +3,9 @@ use crate::instructions::base::instruction::*;
 use crate::instructions::base::*;
 use crate::runtime::heap::constant_pool::*;
 use crate::runtime::heap::method::*;
+use crate::runtime::heap::string_pool::*;
 use crate::runtime::operand_stack::*;
 use crate::runtime::thread::*;
-use std::rc::Rc;
 
 pub struct INVOKE_VIRTUAL {}
 
@@ -100,6 +100,11 @@ fn println(frame: &mut Frame, descriptor: &String) {
     }
     "(D)V" => {
       println!("{}", frame.operand_stack.pop_double())
+    }
+    "(Ljava/lang/String;)V" => {
+      let j_str = frame.operand_stack.pop_ref().expect("not a ref");
+      let r_sting = rs_string(&j_str.borrow());
+      println!("{}", r_sting);
     }
     _ => panic!("println: {}", descriptor),
   }

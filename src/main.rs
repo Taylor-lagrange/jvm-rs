@@ -4,8 +4,12 @@ use structopt::StructOpt;
 mod classfile;
 mod classpath;
 mod instructions;
+mod native;
 mod runtime;
 mod utils;
+
+#[macro_use]
+extern crate lazy_static;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "Usage")]
@@ -58,8 +62,8 @@ fn start_jvm(opt: Opt) {
         .upgrade();
     if main_method.is_none() {
         print!("Main method not found in class {}\n", opt.class);
-    }else{
-        interpret(main_method.unwrap());
+    } else {
+        interpret(main_method.unwrap(), opt.args);
     }
 }
 

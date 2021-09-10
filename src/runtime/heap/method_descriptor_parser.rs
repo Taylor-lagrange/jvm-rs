@@ -1,4 +1,4 @@
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct MethodDescriptor {
   pub parameter_type: Vec<String>,
   pub return_type: String,

@@ -7,6 +7,7 @@ use super::extended::*;
 use super::loads::*;
 use super::math::*;
 use super::reference::*;
+use super::reserved::*;
 use super::stack::*;
 use super::stores::*;
 
@@ -264,6 +265,7 @@ pub fn new_instruction(opcode: u8) -> Box<dyn Instruction> {
     0xc8 => Box::new(goto_w::GOTO_W {}),
     // 0xc9: JSR_W
     // 0xca: breakpoint
+    0xfe => Box::new(invokenative::INVOKE_NATIVE {}),
     // 0xfe: impdep1
     // 0xff: impdep2
     _ => panic!("Unsupported opcode: 0x{:X}", opcode),

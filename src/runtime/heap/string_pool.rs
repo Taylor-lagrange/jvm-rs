@@ -1,20 +1,40 @@
+use super::class_loader::*;
 use super::object::*;
-// use std::cell::RefCell;
+use std::cell::RefCell;
 // use std::collections::HashMap;
-// use std::rc::{Rc};
+use std::rc::{Rc, Weak};
 
-// thread_local!(static INTERNED_STRINGS: RefCell<HashMap<String, Rc<Object<'static>>>> = RefCell::new(HashMap::new()));
+// lazy_static! {
+//   pub static ref INTERNED_STRINGS: RefCell<HashMap<String, Rc<RefCell<Object<'static>>>>> =
+//     RefCell::new(HashMap::new());
+// }
 
-// TODO: string pool need to share object, but my original design is not consider this situation.
-// so all of my struct use to store object not warp by Rc, which lead a huge cost to implement string pool.
-// besides, most object need modify, whcih need Rc<RefCell<>>, introduce a lot of run time borrow-checker for string pool is not worth
+// TODO: string pool need to share object with static variable, so the lifetime of interned string need to be static
+// but the reference store in the Object can't be static,so we have a conflict.
 
-// pub fn j_string<'a>(loader: Weak<RefCell<ClassLoader<'a>>>, name: &String) -> Rc<Object<'a>> {
-//   if INTERNED_STRINGS.contains_key(name) {
-//     return INTERNED_STRINGS.get(name).unwrap().clone();
-//   }
+pub fn j_string<'a>(
+  loader: Weak<RefCell<ClassLoader<'a>>>,
+  r_string: &String,
+) -> Rc<RefCell<Object<'a>>> {
+  // let interned_string = INTERNED_STRINGS.borrow_mut();
+  // if interned_string.contains_key(r_string) {
+  //   return interned_string.get(r_string).unwrap().clone();
+  // }
+  let j_chars = Rc::new(RefCell::new(Object {
+    class: ClassLoader::load_class(loader.clone(), &"[C".to_string()),
+    data: ObjectData::ArrayChars(string_to_utf16(r_string)),
+  }));
+  let j_str_class = ClassLoader::load_class(loader, &"java/lang/String".to_string())
+    .upgrade()
+    .unwrap();
+  let j_str = Object::new_object(&j_str_class);
+  j_str
+    .borrow_mut()
+    .set_ref_var(&"value".to_string(), &"[C".to_string(), Some(j_chars));
+  j_str
+}
 
-fn rs_string(j_str: &Object) -> String {
+pub fn rs_string(j_str: &Object) -> String {
   let char_arr = j_str.get_ref_var(&"value".to_string(), &"[C".to_string());
   let char_obj = char_arr.expect("can't find value([]char) in current object!");
   let rc = char_obj.borrow();
