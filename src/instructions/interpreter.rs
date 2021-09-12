@@ -9,72 +9,72 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 pub fn interpret<'a>(method: Rc<RefCell<Method<'a>>>, args: Vec<String>) {
-  let loader;
-  {
-    let rc = method.borrow().class_member.class.clone();
-    loader = rc.upgrade().unwrap().borrow().loader.clone();
-  }
-  let j_args = create_args_array(loader, args);
-  let thread = Thread::new();
-  let frame = Thread::new_frame(Rc::downgrade(&thread), method.clone());
-  frame
-    .borrow_mut()
-    .local_vars
-    .set_ref(0, Some(Rc::new(RefCell::new(j_args))));
-  thread.borrow_mut().stack.push(frame);
+    let loader;
+    {
+        let rc = method.borrow().class_member.class.clone();
+        loader = rc.upgrade().unwrap().borrow().loader.clone();
+    }
+    let j_args = create_args_array(loader, args);
+    let thread = Thread::new();
+    let frame = Thread::new_frame(Rc::downgrade(&thread), method.clone());
+    frame
+        .borrow_mut()
+        .local_vars
+        .set_ref(0, Some(Rc::new(RefCell::new(j_args))));
+    thread.borrow_mut().stack.push(frame);
 
-  run(thread);
+    run(thread);
 }
 
 pub fn create_args_array(loader: Weak<RefCell<ClassLoader>>, args: Vec<String>) -> Object {
-  let string_class = ClassLoader::load_class(loader.clone(), &"java/lang/String".to_string());
-  let mut args_arr = Object::new_array(string_class, args.len());
-  if let ObjectData::ArrayRefs(j_args) = &mut args_arr.data {
-    for i in 0..args.len() {
-      j_args[i] = j_string(loader.clone(), &args[i]);
+    let string_class = ClassLoader::load_class(loader.clone(), &"java/lang/String".to_string());
+    let mut args_arr = Object::new_array(string_class, args.len());
+    if let ObjectData::ArrayRefs(j_args) = &mut args_arr.data {
+        for i in 0..args.len() {
+            j_args[i] = j_string(loader.clone(), &args[i]);
+        }
     }
-  }
-  args_arr
+    args_arr
 }
 
 pub fn run(thread: Rc<RefCell<Thread>>) {
-  let empty_vec = Rc::new(Vec::new());
-  let mut reader = BytecodeReader::new(empty_vec, 0);
+    let empty_vec = Rc::new(Vec::new());
+    let mut reader = BytecodeReader::new(empty_vec, 0);
 
-  loop {
-    let pc;
-    let code;
-    {
-      let mut thread_instance = thread.borrow_mut();
-      let top = thread_instance.stack.top();
-      let frame = top.borrow();
-      // update reader and thread pc by frame pc
-      pc = frame.next_pc as i32;
-      let method = frame.method.borrow();
-      code = method.code.clone()
-    }
-    thread.borrow_mut().pc = pc;
+    loop {
+        let pc;
+        let code;
+        {
+            let mut thread_instance = thread.borrow_mut();
+            let top = thread_instance.stack.top();
+            let frame = top.borrow();
+            // update reader and thread pc by frame pc
+            pc = frame.next_pc as i32;
+            let method = frame.method.borrow();
+            code = method.code.clone()
+        }
+        thread.borrow_mut().pc = pc;
 
-    reader.reset(code, pc as usize);
+        reader.reset(code, pc as usize);
 
-    // fetch opcode from reader
-    let opcode = reader.read_u8();
-    let mut inst = new_instruction(opcode);
-    // update frame pc because read of the opcode
-    {
-      let frame;
-      {
-        let mut thread_instance = thread.borrow_mut();
-        frame = thread_instance.stack.top();
-      }
-      frame.borrow_mut().next_pc = reader.pc;
-      let borrow_frame = &mut frame.borrow_mut();
-      (*inst).execute(&mut reader, borrow_frame);
+        // fetch opcode from reader
+        let opcode = reader.read_u8();
+        let mut inst = new_instruction(opcode);
+        // update frame pc because read of the opcode
+        {
+            let frame;
+            {
+                let mut thread_instance = thread.borrow_mut();
+                frame = thread_instance.stack.top();
+            }
+            frame.borrow_mut().next_pc = reader.pc;
+            let borrow_frame = &mut frame.borrow_mut();
+            (*inst).execute(&mut reader, borrow_frame);
+        }
+        if thread.borrow_mut().stack.is_empty() {
+            break;
+        }
     }
-    if thread.borrow_mut().stack.is_empty() {
-      break;
-    }
-  }
 }
 
 /*

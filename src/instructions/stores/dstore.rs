@@ -15,37 +15,37 @@ impl NoOperandsInstruction for DSTORE_2 {}
 impl NoOperandsInstruction for DSTORE_3 {}
 
 fn dstore(frame: &mut Frame, index: usize) {
-  let val = frame.operand_stack.pop_double();
-  frame.local_vars.set_double(index, val);
+    let val = frame.operand_stack.pop_double();
+    frame.local_vars.set_double(index, val);
 }
 
 impl Instruction for DSTORE {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let index = self.fetch_operands(reader, frame);
-    dstore(frame, index);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let index = self.fetch_operands(reader, frame);
+        dstore(frame, index);
+    }
 }
 
 impl Instruction for DSTORE_0 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    dstore(frame, 0);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        dstore(frame, 0);
+    }
 }
 
 impl Instruction for DSTORE_1 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    dstore(frame, 1);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        dstore(frame, 1);
+    }
 }
 
 impl Instruction for DSTORE_2 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    dstore(frame, 2);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        dstore(frame, 2);
+    }
 }
 
 impl Instruction for DSTORE_3 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    dstore(frame, 3);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        dstore(frame, 3);
+    }
 }

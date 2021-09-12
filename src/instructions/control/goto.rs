@@ -8,8 +8,8 @@ pub struct GOTO {}
 impl BranchInstruction for GOTO {}
 
 impl Instruction for GOTO {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let offset = self.fetch_operands(reader, frame);
-    branch(frame, offset as i32);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let offset = self.fetch_operands(reader, frame);
+        branch(frame, offset as i32);
+    }
 }

@@ -15,38 +15,38 @@ impl NoOperandsInstruction for FLOAD_2 {}
 impl NoOperandsInstruction for FLOAD_3 {}
 
 fn fload(frame: &mut Frame, index: usize) {
-  frame
-    .operand_stack
-    .push_float(frame.local_vars.get_float(index))
+    frame
+        .operand_stack
+        .push_float(frame.local_vars.get_float(index))
 }
 
 impl Instruction for FLOAD {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let index = self.fetch_operands(reader, frame);
-    fload(frame, index);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let index = self.fetch_operands(reader, frame);
+        fload(frame, index);
+    }
 }
 
 impl Instruction for FLOAD_0 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    fload(frame, 0);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        fload(frame, 0);
+    }
 }
 
 impl Instruction for FLOAD_1 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    fload(frame, 1);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        fload(frame, 1);
+    }
 }
 
 impl Instruction for FLOAD_2 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    fload(frame, 2);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        fload(frame, 2);
+    }
 }
 
 impl Instruction for FLOAD_3 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    fload(frame, 3);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        fload(frame, 3);
+    }
 }

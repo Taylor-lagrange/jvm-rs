@@ -27,11 +27,11 @@ bottom -> top
 [...][c][b][a][a]
 */
 impl Instruction for DUP {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let slot = frame.operand_stack.pop_slot();
-    frame.operand_stack.push_slot(slot.clone());
-    frame.operand_stack.push_slot(slot);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let slot = frame.operand_stack.pop_slot();
+        frame.operand_stack.push_slot(slot.clone());
+        frame.operand_stack.push_slot(slot);
+    }
 }
 
 /*
@@ -45,13 +45,13 @@ bottom -> top
 [...][c][a][b][a]
 */
 impl Instruction for DUP_X1 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let slot1 = frame.operand_stack.pop_slot();
-    let slot2 = frame.operand_stack.pop_slot();
-    frame.operand_stack.push_slot(slot1.clone());
-    frame.operand_stack.push_slot(slot2);
-    frame.operand_stack.push_slot(slot1);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let slot1 = frame.operand_stack.pop_slot();
+        let slot2 = frame.operand_stack.pop_slot();
+        frame.operand_stack.push_slot(slot1.clone());
+        frame.operand_stack.push_slot(slot2);
+        frame.operand_stack.push_slot(slot1);
+    }
 }
 
 /*
@@ -65,15 +65,15 @@ bottom -> top
 [...][a][c][b][a]
 */
 impl Instruction for DUP_X2 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let slot1 = frame.operand_stack.pop_slot();
-    let slot2 = frame.operand_stack.pop_slot();
-    let slot3 = frame.operand_stack.pop_slot();
-    frame.operand_stack.push_slot(slot1.clone());
-    frame.operand_stack.push_slot(slot3);
-    frame.operand_stack.push_slot(slot2);
-    frame.operand_stack.push_slot(slot1);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let slot1 = frame.operand_stack.pop_slot();
+        let slot2 = frame.operand_stack.pop_slot();
+        let slot3 = frame.operand_stack.pop_slot();
+        frame.operand_stack.push_slot(slot1.clone());
+        frame.operand_stack.push_slot(slot3);
+        frame.operand_stack.push_slot(slot2);
+        frame.operand_stack.push_slot(slot1);
+    }
 }
 
 /*
@@ -87,14 +87,14 @@ bottom -> top
 [...][c][b][a][b][a]
 */
 impl Instruction for DUP2 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let slot1 = frame.operand_stack.pop_slot();
-    let slot2 = frame.operand_stack.pop_slot();
-    frame.operand_stack.push_slot(slot2.clone());
-    frame.operand_stack.push_slot(slot1.clone());
-    frame.operand_stack.push_slot(slot2);
-    frame.operand_stack.push_slot(slot1);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let slot1 = frame.operand_stack.pop_slot();
+        let slot2 = frame.operand_stack.pop_slot();
+        frame.operand_stack.push_slot(slot2.clone());
+        frame.operand_stack.push_slot(slot1.clone());
+        frame.operand_stack.push_slot(slot2);
+        frame.operand_stack.push_slot(slot1);
+    }
 }
 
 /*
@@ -108,16 +108,16 @@ bottom -> top
 [...][b][a][c][b][a]
 */
 impl Instruction for DUP2_X1 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let slot1 = frame.operand_stack.pop_slot();
-    let slot2 = frame.operand_stack.pop_slot();
-    let slot3 = frame.operand_stack.pop_slot();
-    frame.operand_stack.push_slot(slot2.clone());
-    frame.operand_stack.push_slot(slot1.clone());
-    frame.operand_stack.push_slot(slot3);
-    frame.operand_stack.push_slot(slot2);
-    frame.operand_stack.push_slot(slot1);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let slot1 = frame.operand_stack.pop_slot();
+        let slot2 = frame.operand_stack.pop_slot();
+        let slot3 = frame.operand_stack.pop_slot();
+        frame.operand_stack.push_slot(slot2.clone());
+        frame.operand_stack.push_slot(slot1.clone());
+        frame.operand_stack.push_slot(slot3);
+        frame.operand_stack.push_slot(slot2);
+        frame.operand_stack.push_slot(slot1);
+    }
 }
 
 /*
@@ -131,16 +131,16 @@ bottom -> top
 [...][b][a][d][c][b][a]
 */
 impl Instruction for DUP2_X2 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let slot1 = frame.operand_stack.pop_slot();
-    let slot2 = frame.operand_stack.pop_slot();
-    let slot3 = frame.operand_stack.pop_slot();
-    let slot4 = frame.operand_stack.pop_slot();
-    frame.operand_stack.push_slot(slot2.clone());
-    frame.operand_stack.push_slot(slot1.clone());
-    frame.operand_stack.push_slot(slot4);
-    frame.operand_stack.push_slot(slot3);
-    frame.operand_stack.push_slot(slot2);
-    frame.operand_stack.push_slot(slot1);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let slot1 = frame.operand_stack.pop_slot();
+        let slot2 = frame.operand_stack.pop_slot();
+        let slot3 = frame.operand_stack.pop_slot();
+        let slot4 = frame.operand_stack.pop_slot();
+        frame.operand_stack.push_slot(slot2.clone());
+        frame.operand_stack.push_slot(slot1.clone());
+        frame.operand_stack.push_slot(slot4);
+        frame.operand_stack.push_slot(slot3);
+        frame.operand_stack.push_slot(slot2);
+        frame.operand_stack.push_slot(slot1);
+    }
 }

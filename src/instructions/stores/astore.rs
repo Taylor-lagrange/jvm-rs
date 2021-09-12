@@ -15,37 +15,37 @@ impl NoOperandsInstruction for ASTORE_2 {}
 impl NoOperandsInstruction for ASTORE_3 {}
 
 fn astore(frame: &mut Frame, index: usize) {
-  let ref_object = frame.operand_stack.pop_ref();
-  frame.local_vars.set_ref(index, ref_object);
+    let ref_object = frame.operand_stack.pop_ref();
+    frame.local_vars.set_ref(index, ref_object);
 }
 
 impl Instruction for ASTORE {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let index = self.fetch_operands(reader, frame);
-    astore(frame, index);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let index = self.fetch_operands(reader, frame);
+        astore(frame, index);
+    }
 }
 
 impl Instruction for ASTORE_0 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    astore(frame, 0);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        astore(frame, 0);
+    }
 }
 
 impl Instruction for ASTORE_1 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    astore(frame, 1);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        astore(frame, 1);
+    }
 }
 
 impl Instruction for ASTORE_2 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    astore(frame, 2);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        astore(frame, 2);
+    }
 }
 
 impl Instruction for ASTORE_3 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    astore(frame, 3);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        astore(frame, 3);
+    }
 }

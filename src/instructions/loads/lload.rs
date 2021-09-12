@@ -15,38 +15,38 @@ impl NoOperandsInstruction for LLOAD_2 {}
 impl NoOperandsInstruction for LLOAD_3 {}
 
 fn lload(frame: &mut Frame, index: usize) {
-  frame
-    .operand_stack
-    .push_long(frame.local_vars.get_long(index))
+    frame
+        .operand_stack
+        .push_long(frame.local_vars.get_long(index))
 }
 
 impl Instruction for LLOAD {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let index = self.fetch_operands(reader, frame);
-    lload(frame, index);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let index = self.fetch_operands(reader, frame);
+        lload(frame, index);
+    }
 }
 
 impl Instruction for LLOAD_0 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    lload(frame, 0);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        lload(frame, 0);
+    }
 }
 
 impl Instruction for LLOAD_1 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    lload(frame, 1);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        lload(frame, 1);
+    }
 }
 
 impl Instruction for LLOAD_2 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    lload(frame, 2);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        lload(frame, 2);
+    }
 }
 
 impl Instruction for LLOAD_3 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    lload(frame, 3);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        lload(frame, 3);
+    }
 }

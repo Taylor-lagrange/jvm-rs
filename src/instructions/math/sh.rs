@@ -17,53 +17,53 @@ impl NoOperandsInstruction for LSHR {} // long算术右位移
 impl NoOperandsInstruction for LUSHR {} // long逻辑右位移
 
 impl Instruction for ISHL {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let v2 = frame.operand_stack.pop_int();
-    let v1 = frame.operand_stack.pop_int();
-    frame.operand_stack.push_int(v1 << ((v2 as u32) & 0x1f));
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let v2 = frame.operand_stack.pop_int();
+        let v1 = frame.operand_stack.pop_int();
+        frame.operand_stack.push_int(v1 << ((v2 as u32) & 0x1f));
+    }
 }
 
 impl Instruction for ISHR {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let v2 = frame.operand_stack.pop_int();
-    let v1 = frame.operand_stack.pop_int();
-    frame.operand_stack.push_int(v1 >> ((v2 as u32) & 0x1f));
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let v2 = frame.operand_stack.pop_int();
+        let v1 = frame.operand_stack.pop_int();
+        frame.operand_stack.push_int(v1 >> ((v2 as u32) & 0x1f));
+    }
 }
 
 impl Instruction for IUSHR {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let v2 = frame.operand_stack.pop_int();
-    let v1 = frame.operand_stack.pop_int();
-    frame
-      .operand_stack
-      .push_int(((v1 as u32) >> ((v2 as u32) & 0x1f)) as i32);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let v2 = frame.operand_stack.pop_int();
+        let v1 = frame.operand_stack.pop_int();
+        frame
+            .operand_stack
+            .push_int(((v1 as u32) >> ((v2 as u32) & 0x1f)) as i32);
+    }
 }
 
 impl Instruction for LSHL {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let v2 = frame.operand_stack.pop_int();
-    let v1 = frame.operand_stack.pop_long();
-    frame.operand_stack.push_long(v1 << ((v2 as u32) & 0x3f));
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let v2 = frame.operand_stack.pop_int();
+        let v1 = frame.operand_stack.pop_long();
+        frame.operand_stack.push_long(v1 << ((v2 as u32) & 0x3f));
+    }
 }
 
 impl Instruction for LSHR {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let v2 = frame.operand_stack.pop_int();
-    let v1 = frame.operand_stack.pop_long();
-    frame.operand_stack.push_long(v1 >> ((v2 as u32) & 0x3f));
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let v2 = frame.operand_stack.pop_int();
+        let v1 = frame.operand_stack.pop_long();
+        frame.operand_stack.push_long(v1 >> ((v2 as u32) & 0x3f));
+    }
 }
 
 impl Instruction for LUSHR {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let v2 = frame.operand_stack.pop_int();
-    let v1 = frame.operand_stack.pop_long();
-    frame
-      .operand_stack
-      .push_long(((v1 as u64) >> ((v2 as u32) & 0x3f)) as i64);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let v2 = frame.operand_stack.pop_int();
+        let v1 = frame.operand_stack.pop_long();
+        frame
+            .operand_stack
+            .push_long(((v1 as u64) >> ((v2 as u32) & 0x3f)) as i64);
+    }
 }

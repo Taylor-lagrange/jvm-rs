@@ -69,153 +69,157 @@ pub type Ref<'a> = Rc<RefCell<Object<'a>>>;
 // },
 
 pub enum ObjectData<'a> {
-  ArrayBytes(Vec<Byte>),
-  ArrayShorts(Vec<Short>),
-  ArrayInts(Vec<Int>),
-  ArrayLongs(Vec<Long>),
-  ArrayChars(Vec<Char>),
-  ArrayFloats(Vec<Float>),
-  ArrayDoubles(Vec<Double>),
-  ArrayRefs(Vec<Ref<'a>>),
-  Field(FieldVar<'a>),
-  Nil,
+    ArrayBytes(Vec<Byte>),
+    ArrayShorts(Vec<Short>),
+    ArrayInts(Vec<Int>),
+    ArrayLongs(Vec<Long>),
+    ArrayChars(Vec<Char>),
+    ArrayFloats(Vec<Float>),
+    ArrayDoubles(Vec<Double>),
+    ArrayRefs(Vec<Ref<'a>>),
+    Field(FieldVar<'a>),
+    Nil,
 }
 
 pub struct Object<'a> {
-  pub class: Weak<RefCell<Class<'a>>>,
-  pub data: ObjectData<'a>,
+    pub class: Weak<RefCell<Class<'a>>>,
+    pub data: ObjectData<'a>,
 }
 
 impl<'a> Object<'a> {
-  pub fn new(class: Weak<RefCell<Class<'a>>>) -> Object<'a> {
-    Object {
-      class: class.clone(),
-      data: ObjectData::Field(FieldVar::new(
-        class.upgrade().unwrap().borrow().instance_slot_count as usize,
-      )),
-    }
-  }
-  pub fn new_object(class: &Rc<RefCell<Class<'a>>>) -> Rc<RefCell<Object<'a>>> {
-    Rc::new(RefCell::new(Object::new(Rc::downgrade(class))))
-  }
-  pub fn is_instance_of(&self, class: Weak<RefCell<Class<'a>>>) -> bool {
-    class
-      .upgrade()
-      .unwrap()
-      .borrow()
-      .is_assignable_from(self.class.clone())
-  }
-  pub fn array_length(&self) -> usize {
-    match &self.data {
-      ObjectData::ArrayBytes(val) => val.len(),
-      ObjectData::ArrayShorts(val) => val.len(),
-      ObjectData::ArrayInts(val) => val.len(),
-      ObjectData::ArrayLongs(val) => val.len(),
-      ObjectData::ArrayChars(val) => val.len(),
-      ObjectData::ArrayFloats(val) => val.len(),
-      ObjectData::ArrayDoubles(val) => val.len(),
-      ObjectData::ArrayRefs(val) => val.len(),
-      _ => panic!("object is not a array"),
-    }
-  }
-  // reflection
-  pub fn get_ref_var(&self, name: &String, descriptor: &String) -> Option<Rc<RefCell<Object<'a>>>> {
-    let field;
-    {
-      let rc = self.class.clone().upgrade().unwrap();
-      field = rc.borrow().get_field(name, descriptor, false);
-    }
-    if let ObjectData::Field(f_var) = &self.data {
-      return f_var.get_ref(field.borrow().slot_id as usize);
-    } else {
-      panic!("it's a array class, which have no field in object");
-    }
-  }
-  pub fn set_ref_var(
-    &mut self,
-    name: &String,
-    descriptor: &String,
-    data: Option<Rc<RefCell<Object<'a>>>>,
-  ) {
-    let field;
-    {
-      let rc = self.class.clone().upgrade().unwrap();
-      field = rc.borrow().get_field(name, descriptor, false);
-    }
-    if let ObjectData::Field(f_var) = &mut self.data {
-      f_var.set_ref(field.borrow().slot_id as usize, data);
-    } else {
-      panic!("it's a array class, which have no field in object");
-    }
-  }
-  pub fn new_array(class: Weak<RefCell<Class<'a>>>, count: usize) -> Object<'a> {
-    let name;
-    {
-      name = class.clone().upgrade().unwrap().borrow().name.to_owned();
-    }
-    Object {
-      class: class,
-      data: match name.as_str() {
-        "[Z" | "[B" => {
-          let mut v: Vec<Byte> = Vec::with_capacity(count);
-          for _ in 0..count {
-            v.push(0);
-          }
-          ObjectData::ArrayBytes(v)
+    pub fn new(class: Weak<RefCell<Class<'a>>>) -> Object<'a> {
+        Object {
+            class: class.clone(),
+            data: ObjectData::Field(FieldVar::new(
+                class.upgrade().unwrap().borrow().instance_slot_count as usize,
+            )),
         }
-        "[C" => {
-          let mut v: Vec<Char> = Vec::with_capacity(count);
-          for _ in 0..count {
-            v.push(0);
-          }
-          ObjectData::ArrayChars(v)
-        }
-        "[S" => {
-          let mut v: Vec<Short> = Vec::with_capacity(count);
-          for _ in 0..count {
-            v.push(0);
-          }
-          ObjectData::ArrayShorts(v)
-        }
-        "[I" => {
-          let mut v: Vec<Int> = Vec::with_capacity(count);
-          for _ in 0..count {
-            v.push(0);
-          }
-          ObjectData::ArrayInts(v)
-        }
-        "[J" => {
-          let mut v: Vec<Long> = Vec::with_capacity(count);
-          for _ in 0..count {
-            v.push(0);
-          }
-          ObjectData::ArrayLongs(v)
-        }
-        "[F" => {
-          let mut v: Vec<Float> = Vec::with_capacity(count);
-          for _ in 0..count {
-            v.push(0.0);
-          }
-          ObjectData::ArrayFloats(v)
-        }
-        "[D" => {
-          let mut v: Vec<Double> = Vec::with_capacity(count);
-          for _ in 0..count {
-            v.push(0.0);
-          }
-          ObjectData::ArrayDoubles(v)
-        }
-        _ => {
-          let mut v: Vec<Ref> = Vec::with_capacity(count);
-          for _ in 0..count {
-            v.push(Rc::new(RefCell::new(Object {
-              class: Weak::new(),
-              data: ObjectData::Nil,
-            })));
-          }
-          ObjectData::ArrayRefs(v)
-        }
-      },
     }
-  }
+    pub fn new_object(class: &Rc<RefCell<Class<'a>>>) -> Rc<RefCell<Object<'a>>> {
+        Rc::new(RefCell::new(Object::new(Rc::downgrade(class))))
+    }
+    pub fn is_instance_of(&self, class: Weak<RefCell<Class<'a>>>) -> bool {
+        class
+            .upgrade()
+            .unwrap()
+            .borrow()
+            .is_assignable_from(self.class.clone())
+    }
+    pub fn array_length(&self) -> usize {
+        match &self.data {
+            ObjectData::ArrayBytes(val) => val.len(),
+            ObjectData::ArrayShorts(val) => val.len(),
+            ObjectData::ArrayInts(val) => val.len(),
+            ObjectData::ArrayLongs(val) => val.len(),
+            ObjectData::ArrayChars(val) => val.len(),
+            ObjectData::ArrayFloats(val) => val.len(),
+            ObjectData::ArrayDoubles(val) => val.len(),
+            ObjectData::ArrayRefs(val) => val.len(),
+            _ => panic!("object is not a array"),
+        }
+    }
+    // reflection
+    pub fn get_ref_var(
+        &self,
+        name: &String,
+        descriptor: &String,
+    ) -> Option<Rc<RefCell<Object<'a>>>> {
+        let field;
+        {
+            let rc = self.class.clone().upgrade().unwrap();
+            field = rc.borrow().get_field(name, descriptor, false);
+        }
+        if let ObjectData::Field(f_var) = &self.data {
+            return f_var.get_ref(field.borrow().slot_id as usize);
+        } else {
+            panic!("it's a array class, which have no field in object");
+        }
+    }
+    pub fn set_ref_var(
+        &mut self,
+        name: &String,
+        descriptor: &String,
+        data: Option<Rc<RefCell<Object<'a>>>>,
+    ) {
+        let field;
+        {
+            let rc = self.class.clone().upgrade().unwrap();
+            field = rc.borrow().get_field(name, descriptor, false);
+        }
+        if let ObjectData::Field(f_var) = &mut self.data {
+            f_var.set_ref(field.borrow().slot_id as usize, data);
+        } else {
+            panic!("it's a array class, which have no field in object");
+        }
+    }
+    pub fn new_array(class: Weak<RefCell<Class<'a>>>, count: usize) -> Object<'a> {
+        let name;
+        {
+            name = class.clone().upgrade().unwrap().borrow().name.to_owned();
+        }
+        Object {
+            class: class,
+            data: match name.as_str() {
+                "[Z" | "[B" => {
+                    let mut v: Vec<Byte> = Vec::with_capacity(count);
+                    for _ in 0..count {
+                        v.push(0);
+                    }
+                    ObjectData::ArrayBytes(v)
+                }
+                "[C" => {
+                    let mut v: Vec<Char> = Vec::with_capacity(count);
+                    for _ in 0..count {
+                        v.push(0);
+                    }
+                    ObjectData::ArrayChars(v)
+                }
+                "[S" => {
+                    let mut v: Vec<Short> = Vec::with_capacity(count);
+                    for _ in 0..count {
+                        v.push(0);
+                    }
+                    ObjectData::ArrayShorts(v)
+                }
+                "[I" => {
+                    let mut v: Vec<Int> = Vec::with_capacity(count);
+                    for _ in 0..count {
+                        v.push(0);
+                    }
+                    ObjectData::ArrayInts(v)
+                }
+                "[J" => {
+                    let mut v: Vec<Long> = Vec::with_capacity(count);
+                    for _ in 0..count {
+                        v.push(0);
+                    }
+                    ObjectData::ArrayLongs(v)
+                }
+                "[F" => {
+                    let mut v: Vec<Float> = Vec::with_capacity(count);
+                    for _ in 0..count {
+                        v.push(0.0);
+                    }
+                    ObjectData::ArrayFloats(v)
+                }
+                "[D" => {
+                    let mut v: Vec<Double> = Vec::with_capacity(count);
+                    for _ in 0..count {
+                        v.push(0.0);
+                    }
+                    ObjectData::ArrayDoubles(v)
+                }
+                _ => {
+                    let mut v: Vec<Ref> = Vec::with_capacity(count);
+                    for _ in 0..count {
+                        v.push(Rc::new(RefCell::new(Object {
+                            class: Weak::new(),
+                            data: ObjectData::Nil,
+                        })));
+                    }
+                    ObjectData::ArrayRefs(v)
+                }
+            },
+        }
+    }
 }

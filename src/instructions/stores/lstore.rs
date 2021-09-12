@@ -15,37 +15,37 @@ impl NoOperandsInstruction for LSTORE_2 {}
 impl NoOperandsInstruction for LSTORE_3 {}
 
 fn lstore(frame: &mut Frame, index: usize) {
-  let val = frame.operand_stack.pop_long();
-  frame.local_vars.set_long(index, val);
+    let val = frame.operand_stack.pop_long();
+    frame.local_vars.set_long(index, val);
 }
 
 impl Instruction for LSTORE {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let index = self.fetch_operands(reader, frame);
-    lstore(frame, index);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let index = self.fetch_operands(reader, frame);
+        lstore(frame, index);
+    }
 }
 
 impl Instruction for LSTORE_0 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    lstore(frame, 0);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        lstore(frame, 0);
+    }
 }
 
 impl Instruction for LSTORE_1 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    lstore(frame, 1);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        lstore(frame, 1);
+    }
 }
 
 impl Instruction for LSTORE_2 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    lstore(frame, 2);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        lstore(frame, 2);
+    }
 }
 
 impl Instruction for LSTORE_3 {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    lstore(frame, 3);
-  }
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        lstore(frame, 3);
+    }
 }

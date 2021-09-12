@@ -18,37 +18,37 @@ impl Index16Instruction for INVOKE_STATIC {}
 // 之所应单独定义 invokeinterface 指令，是因为通过这个指令调用时的this指针可以指向当前所有实现了该接口的类示例，没法使用 vtable 加速查找
 
 impl Instruction for INVOKE_STATIC {
-  fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
-    let index = self.fetch_operands(reader, frame);
-    let info;
-    {
-      let rc = frame.method.borrow_mut().class_member.class.clone();
-      let pool_rc = rc
-        .upgrade()
-        .unwrap()
-        .borrow_mut()
-        .constant_pool
-        .clone()
-        .unwrap();
-      let mut cp = pool_rc.borrow_mut();
-      info = cp.get_constant_info(index).clone();
-    }
-    if let ConstantInfoRunTime::Methodref(mut refs) = info {
-      let method = refs.resolve_method();
-      let class = refs.member_ref.sym_ref.resolved_class();
-      let rc = method.upgrade().unwrap();
-      {
-        let method_instance = rc.borrow();
-        if !method_instance.class_member.is_static() {
-          panic!("java.lang.IncompatibleClassChangeError");
+    fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
+        let index = self.fetch_operands(reader, frame);
+        let info;
+        {
+            let rc = frame.method.borrow_mut().class_member.class.clone();
+            let pool_rc = rc
+                .upgrade()
+                .unwrap()
+                .borrow_mut()
+                .constant_pool
+                .clone()
+                .unwrap();
+            let mut cp = pool_rc.borrow_mut();
+            info = cp.get_constant_info(index).clone();
         }
-        if !Class::init_started(&class) {
-          frame.revert_pc();
-          init_class(frame.thread.clone(), class.clone());
-          return;
+        if let ConstantInfoRunTime::Methodref(mut refs) = info {
+            let method = refs.resolve_method();
+            let class = refs.member_ref.sym_ref.resolved_class();
+            let rc = method.upgrade().unwrap();
+            {
+                let method_instance = rc.borrow();
+                if !method_instance.class_member.is_static() {
+                    panic!("java.lang.IncompatibleClassChangeError");
+                }
+                if !Class::init_started(&class) {
+                    frame.revert_pc();
+                    init_class(frame.thread.clone(), class.clone());
+                    return;
+                }
+            }
+            invoke_method(frame, rc);
         }
-      }
-      invoke_method(frame, rc);
     }
-  }
 }

@@ -67,4 +67,37 @@ fn start_jvm(opt: Opt) {
     }
 }
 
-// run example: cargo run -- -x /mnt/d/Development/Java/jdk1.8.0_261/jre/ --class java.lang.Object.class
+// The #[cfg(test)] annotation on the tests module tells Rust to compile and run the test code only when you run cargo test
+// not when you run cargo build .
+// -x ./resources --class ./resources/tests/FibonacciTest.class
+// #[cfg(test)]
+// mod test {
+//     use super::*;
+//     use std::fs::File;
+//     use std::io::Write;
+//     use pprof::protos::Message;
+//
+//     #[test]
+//     fn pprof_test_fibonacci() {
+//         let guard = pprof::ProfilerGuard::new(100).unwrap();
+//         let fibonacci = Opt {
+//             version: false,
+//             help: false,
+//             cp_option: None,
+//             xjre_option: Some("./resources".to_string()),
+//             class: "./resources/tests/FibonacciTest.class".to_string(),
+//             args: Vec::new(),
+//         };
+//         println!("jvm start!");
+//         start_jvm(fibonacci);
+//         if let Ok(report) = guard.report().build() {
+//             let file = File::create("flamegraph.svg").unwrap();
+//             report.flamegraph(file).unwrap();
+//             let mut pb_file = File::create("profile.pb").unwrap();
+//             let profile = report.pprof().unwrap();
+//             let mut content = Vec::new();
+//             profile.encode(&mut content).unwrap();
+//             pb_file.write_all(&content).unwrap();
+//         };
+//     }
+// }
