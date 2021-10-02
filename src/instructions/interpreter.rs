@@ -8,7 +8,7 @@ use crate::runtime::thread::*;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
-pub fn interpret<'a>(method: Rc<RefCell<Method<'a>>>, args: Vec<String>) {
+pub fn interpret(method: Rc<RefCell<Method>>, args: Vec<String>) {
     let loader;
     {
         let rc = method.borrow().class_member.class.clone();

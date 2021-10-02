@@ -58,7 +58,7 @@ impl<'a> ClassMember<'a> {
                 || self_class.borrow().get_package_name()
                     == access_class.borrow().get_package_name();
         }
-        if self.is_private() {
+        if !self.is_private() {
             return self_class.borrow().get_package_name()
                 == access_class.borrow().get_package_name();
         }

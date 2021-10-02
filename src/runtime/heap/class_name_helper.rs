@@ -40,7 +40,7 @@ use phf::phf_map;
 // JNI 描述符：()V
 // 括号内是每个参数的类型符，括号外就是返回值的类型符。
 
-static PRIMITIVE_TYPES: phf::Map<&'static str, &'static str> = phf_map! {
+pub static PRIMITIVE_TYPES: phf::Map<&'static str, &'static str> = phf_map! {
   "void"=>   "V",
   "boolean"=> "Z",
   "byte"=>   "B",

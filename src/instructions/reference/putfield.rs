@@ -53,7 +53,7 @@ impl Instruction for PUT_FIELD {
                 .nth(0)
                 .unwrap()
             {
-                'z' | 'B' | 'C' | 'S' | 'I' => {
+                'Z' | 'B' | 'C' | 'S' | 'I' => {
                     let val = frame.operand_stack.pop_int();
                     let re = frame.operand_stack.pop_ref();
                     if re.is_none() {

@@ -83,6 +83,14 @@ impl ClassFile {
         }
         v
     }
+    pub fn get_file_name(&self) -> String {
+        for attr in self.attributes.iter() {
+            if let AttributeInfo::SourceFile { source_file_index } = attr {
+                return self.constant_pool.get_utf8(*source_file_index).clone();
+            }
+        }
+        String::from("unknown")
+    }
     pub fn print_class_info(&self) {
         info!("version: {}.{}\n", self.major_version, self.minor_version);
         info!("constants count: {}\n", self.constant_pool.pool_count);

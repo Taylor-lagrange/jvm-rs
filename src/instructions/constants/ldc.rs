@@ -22,15 +22,25 @@ fn ldc(frame: &mut Frame, index: usize) {
         pool_rc = instance.constant_pool.clone().unwrap();
         loader = instance.loader.clone();
     }
-    let mut cp = pool_rc.borrow_mut();
-    match cp.get_constant_info(index) {
-        ConstantInfoRunTime::Integer(val) => frame.operand_stack.push_int(*val),
-        ConstantInfoRunTime::Float(val) => frame.operand_stack.push_float(*val),
-        ConstantInfoRunTime::Long(val) => frame.operand_stack.push_long(*val),
-        ConstantInfoRunTime::Double(val) => frame.operand_stack.push_double(*val),
+    let const_info;
+    {
+        let mut cp = pool_rc.borrow_mut();
+        const_info = cp.get_constant_info(index).clone();
+    }
+    match const_info {
+        ConstantInfoRunTime::Integer(val) => frame.operand_stack.push_int(val),
+        ConstantInfoRunTime::Float(val) => frame.operand_stack.push_float(val),
+        ConstantInfoRunTime::Long(val) => frame.operand_stack.push_long(val),
+        ConstantInfoRunTime::Double(val) => frame.operand_stack.push_double(val),
         ConstantInfoRunTime::String(s) => {
             let s_obj = j_string(loader, &s);
             frame.operand_stack.push_ref(Some(s_obj));
+        }
+        ConstantInfoRunTime::Class(mut c) => {
+            // xxxx.class load
+            let class = c.sym_ref.resolved_class().upgrade().unwrap();
+            let j_class = class.borrow().j_class.clone();
+            frame.operand_stack.push_ref(j_class);
         }
         _ => panic!("todo"),
     }

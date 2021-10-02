@@ -1,7 +1,5 @@
 use crate::instructions::base::bytecode_reader::*;
 use crate::instructions::base::instruction::*;
-use crate::runtime::heap::constant_pool::*;
-use crate::runtime::heap::object::*;
 use crate::runtime::thread::*;
 
 pub struct ARRAY_LENGTH {}
@@ -14,8 +12,7 @@ impl Instruction for ARRAY_LENGTH {
         if arr_array.is_none() {
             panic!("java.lang.NullPointerException");
         }
-        frame
-            .operand_stack
-            .push_int(arr_array.unwrap().borrow().array_length() as i32);
+        let len = arr_array.unwrap().borrow().array_length();
+        frame.operand_stack.push_int(len as i32);
     }
 }

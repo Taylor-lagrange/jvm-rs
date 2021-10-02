@@ -5,6 +5,7 @@ use super::method_descriptor_parser::*;
 use crate::classfile::attribute_info::*;
 use crate::classfile::constant_pool::*;
 use crate::classfile::member_info::*;
+use crate::runtime::heap::exception_table::{ExceptionHandler, ExceptionTable};
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
@@ -15,6 +16,8 @@ pub struct Method<'a> {
     pub max_locals: u32,
     pub code: Rc<Vec<u8>>,
     pub arg_slot_count: u32,
+    pub exception_table: ExceptionTable<'a>,
+    pub line_number_table: Vec<LineNumberTableEntry>,
     pub parsed_descriptor: MethodDescriptor,
 }
 
@@ -39,6 +42,11 @@ impl<'a> Method<'a> {
         pool: &ConstantPool,
         member_info: &MemberInfo,
     ) -> Method<'a> {
+        let pool_run_time;
+        {
+            let rc = class.clone().upgrade().unwrap();
+            pool_run_time = rc.borrow().constant_pool.clone().unwrap();
+        }
         let mut method = Method {
             class_member: ClassMember::new(pool, class, member_info),
             ..Default::default()
@@ -47,12 +55,19 @@ impl<'a> Method<'a> {
             max_stack,
             max_locals,
             code,
-            ..
+            exception_table,
+            attributes,
         } = member_info.code_attribute()
         {
             method.code = Rc::new(code);
             method.max_locals = max_locals as u32;
             method.max_stack = max_stack as u32;
+            method.exception_table = ExceptionHandler::new(exception_table, &pool_run_time);
+            for attr in attributes {
+                if let AttributeInfo::LineNumberTable { line_number_table } = attr {
+                    method.line_number_table = line_number_table;
+                }
+            }
         }
         method.parsed_descriptor =
             MethodDescriptorParser::parse(method.class_member.descriptor.clone());
@@ -61,6 +76,13 @@ impl<'a> Method<'a> {
             method.inject_code_attribute()
         }
         method
+    }
+    pub fn find_exception_handler(&self, class: Rc<RefCell<Class<'a>>>, pc: usize) -> i32 {
+        let handler = ExceptionHandler::find_exception_handler(&self.exception_table, class, pc);
+        if handler.is_some() {
+            return handler.unwrap().handler_pc as i32;
+        }
+        -1
     }
     // 本地方法在 class ⽂件中没有 Code 属性，所以需要给
     // maxStack 和 maxLocals 字段赋值。本地方法帧的操作数栈至少
@@ -97,6 +119,21 @@ impl<'a> Method<'a> {
         if !self.class_member.is_static() {
             self.arg_slot_count += 1; // `this` reference
         }
+    }
+    pub fn get_line_number(&self, pc: usize) -> i32 {
+        if self.is_native() {
+            return -2;
+        }
+        if self.line_number_table.len() == 0 {
+            return -1;
+        }
+        for i in (0..self.line_number_table.len()).rev() {
+            let entry = &self.line_number_table[i];
+            if pc >= (*entry).start_pc as usize {
+                return (*entry).line_number as i32;
+            }
+        }
+        -1
     }
 
     pub fn is_synchronized(&self) -> bool {

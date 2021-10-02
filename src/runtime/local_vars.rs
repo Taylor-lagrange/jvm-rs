@@ -21,22 +21,25 @@ impl<'a> LocalVars<'a> {
     pub fn set_int(&mut self, index: usize, val: i32) {
         self.0[index] = Slot::Num(val)
     }
+    // 因为 go 语言里他实现 jvm 用的是一个结构体，存储我这定义枚举里的所有元素，go的结构体会被默认初始化
+    // 比如一个 int，就算没初始化读出来的也是个 0 ，这和 Java 里的变量初始化机制非常相似
+    // 但我用了 rust 的枚举，没初始化过的 int 变量在这是 Nil ，一读就报错。
+    // 所以增加一个机制对于非 ref 的数字默认会读出 0
     pub fn get_int(&self, index: usize) -> i32 {
-        if let Slot::Num(num) = self.0[index] {
-            num
-        } else {
-            panic!("LocalVars get number failed!")
+        match self.0[index] {
+            Slot::Num(num) => num,
+            Slot::RefObject(_) => panic!("LocalVars get number failed!"),
+            Slot::Nil => 0,
         }
     }
     pub fn set_float(&mut self, index: usize, val: f32) {
         self.0[index] = Slot::Num(val.to_bits() as i32)
     }
     pub fn get_float(&self, index: usize) -> f32 {
-        if let Slot::Num(num) = self.0[index] {
-            let data: f32 = unsafe { transmute(num) };
-            data
-        } else {
-            panic!("LocalVars get number failed!")
+        match self.0[index] {
+            Slot::Num(num) => unsafe { transmute(num) },
+            Slot::RefObject(_) => panic!("LocalVars get number failed!"),
+            Slot::Nil => 0.0,
         }
     }
     pub fn set_long(&mut self, index: usize, val: i64) {
@@ -44,18 +47,16 @@ impl<'a> LocalVars<'a> {
         self.0[index + 1] = Slot::Num((val >> 32) as i32);
     }
     pub fn get_long(&self, index: usize) -> i64 {
-        let low: u32;
-        let high: u32;
-        if let Slot::Num(num) = self.0[index] {
-            low = num as u32;
-        } else {
-            panic!("LocalVars get number failed!")
-        }
-        if let Slot::Num(num) = self.0[index + 1] {
-            high = num as u32;
-        } else {
-            panic!("LocalVars get number failed!")
-        }
+        let low: u32 = match self.0[index] {
+            Slot::Num(num) => num as u32,
+            Slot::Nil => 0,
+            Slot::RefObject(_) => panic!("LocalVars get number failed!"),
+        };
+        let high: u32 = match self.0[index + 1] {
+            Slot::Num(num) => num as u32,
+            Slot::Nil => 0,
+            Slot::RefObject(_) => panic!("LocalVars get number failed!"),
+        };
         (((high as u64) << 32) | (low as u64)) as i64
     }
     pub fn set_double(&mut self, index: usize, val: f64) {
@@ -72,10 +73,10 @@ impl<'a> LocalVars<'a> {
     pub fn get_ref(&self, index: usize) -> Option<Rc<RefCell<Object<'a>>>> {
         match &self.0[index] {
             Slot::RefObject(object) => {
-                if let Some(obj) = object {
-                    return Some(obj.clone());
+                return if let Some(obj) = object {
+                    Some(obj.clone())
                 } else {
-                    return None;
+                    None
                 }
             }
             Slot::Nil => return None,

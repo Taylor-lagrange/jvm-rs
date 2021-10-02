@@ -43,7 +43,7 @@ impl Instruction for GET_FIELD {
                 .nth(0)
                 .unwrap()
             {
-                'z' | 'B' | 'C' | 'S' | 'I' => {
+                'Z' | 'B' | 'C' | 'S' | 'I' => {
                     let val;
                     if let ObjectData::Field(field) = &target_ref.unwrap().borrow().data {
                         val = field.get_int(slot_id);

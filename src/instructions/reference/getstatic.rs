@@ -48,7 +48,7 @@ impl Instruction for GET_STATIC {
                 .nth(0)
                 .unwrap()
             {
-                'z' | 'B' | 'C' | 'S' | 'I' => {
+                'Z' | 'B' | 'C' | 'S' | 'I' => {
                     frame.operand_stack.push_int(class_var.get_int(slot_id))
                 }
                 'F' => frame.operand_stack.push_float(class_var.get_float(slot_id)),

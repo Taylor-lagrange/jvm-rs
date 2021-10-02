@@ -1,5 +1,6 @@
 pub mod anewarray;
 pub mod arraylength;
+pub mod athrow;
 pub mod checkcast;
 pub mod getfield;
 pub mod getstatic;

@@ -1,4 +1,5 @@
 use super::heap::object::*;
+use log::debug;
 use std::cell::RefCell;
 use std::mem::transmute;
 use std::rc::Rc;
@@ -82,7 +83,8 @@ impl<'a> OperandStack<'a> {
         self.slots.push(Slot::RefObject(ref_object));
     }
     pub fn pop_ref(&mut self) -> Option<Rc<RefCell<Object<'a>>>> {
-        if let Some(Slot::RefObject(object)) = self.slots.pop() {
+        let elem = self.slots.pop();
+        if let Some(Slot::RefObject(object)) = elem {
             self.size -= 1;
             object
         } else {
@@ -96,6 +98,22 @@ impl<'a> OperandStack<'a> {
         } else {
             panic!("invalid: pop when empty stack")
         }
+    }
+    pub fn push_boolean(&mut self, val: bool) {
+        if val {
+            self.push_int(1);
+        } else {
+            self.push_int(0);
+        }
+    }
+    pub fn clear(&mut self) {
+        self.size = 0;
+        for i in 0..self.slots.len() {
+            self.slots[i] = Slot::Nil;
+        }
+    }
+    pub fn pop_boolean(&mut self) -> bool {
+        self.pop_int() == 1
     }
     pub fn push_slot(&mut self, slot: Slot<'a>) {
         self.size += 1;

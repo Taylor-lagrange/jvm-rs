@@ -1,5 +1,7 @@
 use super::class::*;
+use crate::runtime::heap::class_loader::ClassLoader;
 use crate::runtime::local_vars::*;
+use crate::runtime::thread::Frame;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
@@ -67,7 +69,7 @@ pub type Ref<'a> = Rc<RefCell<Object<'a>>>;
 //   field: FieldVar::new(class.upgrade().unwrap().borrow().instance_slot_count as usize),
 //   ..Default::default()
 // },
-
+#[derive(Clone)]
 pub enum ObjectData<'a> {
     ArrayBytes(Vec<Byte>),
     ArrayShorts(Vec<Short>),
@@ -81,9 +83,59 @@ pub enum ObjectData<'a> {
     Nil,
 }
 
+#[derive(Clone)]
+pub struct StackTraceElement {
+    file_name: String,
+    class_name: String,
+    method_name: String,
+    line_number: i32,
+}
+
+impl StackTraceElement {
+    pub fn new(frame: &Frame) -> StackTraceElement {
+        let method_rc = frame.method.borrow();
+        let rc = method_rc.class_member.class.clone().upgrade().unwrap();
+        let class_rc = rc.borrow();
+        StackTraceElement {
+            file_name: class_rc.source_file.clone(),
+            class_name: class_rc.name.clone(),
+            method_name: method_rc.class_member.name.clone(),
+            line_number: method_rc.get_line_number(frame.next_pc - 1),
+        }
+    }
+    pub fn to_string(&self) -> String {
+        format!(
+            "{}.{}({}:{})",
+            self.class_name,
+            self.method_name,
+            self.file_name,
+            self.line_number.to_string()
+        )
+    }
+}
+
+#[derive(Clone)]
+pub enum ObjectExtra<'a> {
+    Class(Weak<RefCell<Class<'a>>>),
+    StackTrace(Vec<StackTraceElement>),
+    Nil,
+}
+
+#[derive(Clone)]
 pub struct Object<'a> {
     pub class: Weak<RefCell<Class<'a>>>,
     pub data: ObjectData<'a>,
+    pub extra: ObjectExtra<'a>,
+}
+
+impl<'a> Default for Object<'a> {
+    fn default() -> Self {
+        Object {
+            class: Weak::new(),
+            data: ObjectData::Nil,
+            extra: ObjectExtra::Nil,
+        }
+    }
 }
 
 impl<'a> Object<'a> {
@@ -93,6 +145,7 @@ impl<'a> Object<'a> {
             data: ObjectData::Field(FieldVar::new(
                 class.upgrade().unwrap().borrow().instance_slot_count as usize,
             )),
+            ..Default::default()
         }
     }
     pub fn new_object(class: &Rc<RefCell<Class<'a>>>) -> Rc<RefCell<Object<'a>>> {
@@ -215,11 +268,84 @@ impl<'a> Object<'a> {
                         v.push(Rc::new(RefCell::new(Object {
                             class: Weak::new(),
                             data: ObjectData::Nil,
+                            ..Default::default()
                         })));
                     }
                     ObjectData::ArrayRefs(v)
                 }
             },
+            ..Default::default()
+        }
+    }
+    pub fn array_copy(
+        src: Rc<RefCell<Object<'a>>>,
+        des: Rc<RefCell<Object<'a>>>,
+        src_pos: usize,
+        dst_pos: usize,
+        length: usize,
+    ) {
+        let mut i_src = src.borrow_mut();
+        let mut i_des = des.borrow_mut();
+        match &mut i_src.data {
+            ObjectData::ArrayBytes(s) => {
+                if let ObjectData::ArrayBytes(d) = &mut i_des.data {
+                    for i in 0..length {
+                        d[dst_pos + i] = s[src_pos + i]
+                    }
+                }
+            }
+            ObjectData::ArrayShorts(s) => {
+                if let ObjectData::ArrayShorts(d) = &mut i_des.data {
+                    for i in 0..length {
+                        d[dst_pos + i] = s[src_pos + i]
+                    }
+                }
+            }
+            ObjectData::ArrayInts(s) => {
+                if let ObjectData::ArrayInts(d) = &mut i_des.data {
+                    for i in 0..length {
+                        d[dst_pos + i] = s[src_pos + i]
+                    }
+                }
+            }
+            ObjectData::ArrayLongs(s) => {
+                if let ObjectData::ArrayLongs(d) = &mut i_des.data {
+                    for i in 0..length {
+                        d[dst_pos + i] = s[src_pos + i]
+                    }
+                }
+            }
+            ObjectData::ArrayChars(s) => {
+                if let ObjectData::ArrayChars(d) = &mut i_des.data {
+                    for i in 0..length {
+                        d[dst_pos + i] = s[src_pos + i]
+                    }
+                }
+            }
+            ObjectData::ArrayFloats(s) => {
+                if let ObjectData::ArrayFloats(d) = &mut i_des.data {
+                    for i in 0..length {
+                        d[dst_pos + i] = s[src_pos + i]
+                    }
+                }
+            }
+            ObjectData::ArrayDoubles(s) => {
+                if let ObjectData::ArrayDoubles(d) = &mut i_des.data {
+                    for i in 0..length {
+                        d[dst_pos + i] = s[src_pos + i]
+                    }
+                }
+            }
+            ObjectData::ArrayRefs(s) => {
+                if let ObjectData::ArrayRefs(d) = &mut i_des.data {
+                    for i in 0..length {
+                        d[dst_pos + i] = s[src_pos + i].clone()
+                    }
+                }
+            }
+            _ => {
+                panic!("Not array!");
+            }
         }
     }
 }

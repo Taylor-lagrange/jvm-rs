@@ -34,7 +34,6 @@ impl Instruction for INVOKE_VIRTUAL {
             let class_rc = class.upgrade().unwrap();
             {
                 let method_instance = method_rc.borrow();
-                let class_instance = class_rc.borrow();
 
                 if method_instance.class_member.is_static() {
                     panic!("java.lang.IncompatibleClassChangeError");
@@ -103,7 +102,7 @@ fn println(frame: &mut Frame, descriptor: &String) {
         }
         "(Ljava/lang/String;)V" => {
             let j_str = frame.operand_stack.pop_ref().expect("not a ref");
-            let r_sting = rs_string(&j_str.borrow());
+            let r_sting = rs_string(&j_str);
             println!("{}", r_sting);
         }
         _ => panic!("println: {}", descriptor),

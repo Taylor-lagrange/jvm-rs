@@ -11,6 +11,8 @@ use std::rc::{Rc, Weak};
 
 // TODO: string pool need to share object with static variable, so the lifetime of interned string need to be static
 // but the reference store in the Object can't be static,so we have a conflict.
+// in this way "abc" == "abc"  is false, because java compare two string by it's underlying object
+// this to string are independent object, so to object are not equal
 
 pub fn j_string<'a>(
     loader: Weak<RefCell<ClassLoader<'a>>>,
@@ -23,6 +25,7 @@ pub fn j_string<'a>(
     let j_chars = Rc::new(RefCell::new(Object {
         class: ClassLoader::load_class(loader.clone(), &"[C".to_string()),
         data: ObjectData::ArrayChars(string_to_utf16(r_string)),
+        extra: ObjectExtra::Nil,
     }));
     let j_str_class = ClassLoader::load_class(loader, &"java/lang/String".to_string())
         .upgrade()
@@ -34,8 +37,10 @@ pub fn j_string<'a>(
     j_str
 }
 
-pub fn rs_string(j_str: &Object) -> String {
-    let char_arr = j_str.get_ref_var(&"value".to_string(), &"[C".to_string());
+pub fn rs_string(j_str: &Rc<RefCell<Object>>) -> String {
+    let char_arr = j_str
+        .borrow()
+        .get_ref_var(&"value".to_string(), &"[C".to_string());
     let char_obj = char_arr.expect("can't find value([]char) in current object!");
     let rc = char_obj.borrow();
     if let ObjectData::ArrayChars(char_array) = &rc.data {

@@ -2,6 +2,7 @@ use crate::instructions::base::bytecode_reader::*;
 use crate::instructions::base::instruction::*;
 use crate::native::registry::*;
 use crate::runtime::thread::*;
+use log::error;
 use std::sync::Arc;
 
 // Invoke native method

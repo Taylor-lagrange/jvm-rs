@@ -4,6 +4,7 @@ pub mod class_loader;
 pub mod class_member;
 pub mod class_name_helper;
 pub mod constant_pool;
+pub mod exception_table;
 pub mod field;
 pub mod method;
 pub mod method_descriptor_parser;

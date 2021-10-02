@@ -29,8 +29,8 @@ impl<'a> Frame<'a> {
         let max_stack = method.borrow().max_stack;
         Frame {
             local_vars: LocalVars::new(max_locals as usize),
-            thread: thread,
-            method: method,
+            thread,
+            method,
             operand_stack: OperandStack::new(max_stack as usize),
             next_pc: 0,
         }
@@ -43,13 +43,15 @@ impl<'a> Frame<'a> {
 
 pub struct Stack<'a> {
     pub max_size: usize,
+    pub size: usize,
     pub frame_list: List<Rc<RefCell<Frame<'a>>>>,
 }
 
 impl<'a> Stack<'a> {
     pub fn new(max_size: usize) -> Stack<'a> {
         Stack {
-            max_size: max_size,
+            max_size,
+            size: 0,
             frame_list: List::new(),
         }
     }
@@ -57,14 +59,21 @@ impl<'a> Stack<'a> {
         if self.frame_list.size >= self.max_size as i32 {
             panic!("java.lang.StackOverflowError");
         }
-        self.frame_list.push(frame)
+        self.frame_list.push(frame);
+        self.size += 1;
     }
     pub fn pop(&mut self) -> Rc<RefCell<Frame<'a>>> {
         let data = self.frame_list.pop();
         match data {
-            Some(frame) => frame,
+            Some(frame) => {
+                self.size -= 1;
+                frame
+            }
             None => panic!("jvm stack is empty!"),
         }
+    }
+    pub fn get(&self, n: usize) -> Rc<RefCell<Frame<'a>>> {
+        self.frame_list.get_elem(n).unwrap().clone()
     }
     pub fn top(&mut self) -> Rc<RefCell<Frame<'a>>> {
         let data = self.frame_list.peek_mut();
@@ -95,5 +104,17 @@ impl<'a> Thread<'a> {
         method: Rc<RefCell<Method<'a>>>,
     ) -> Rc<RefCell<Frame<'a>>> {
         Rc::new(RefCell::new(Frame::new(method, thread)))
+    }
+    pub fn get_frames(&self) -> Vec<Rc<RefCell<Frame<'a>>>> {
+        let mut frames = Vec::with_capacity(self.stack.size);
+        for i in 0..self.stack.size {
+            frames.push(self.stack.get(i));
+        }
+        frames
+    }
+    pub fn clear_stack(&mut self) {
+        while !self.stack.is_empty() {
+            self.stack.pop();
+        }
     }
 }

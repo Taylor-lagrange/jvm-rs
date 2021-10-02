@@ -5,6 +5,7 @@ use crate::instructions::base::method_invoke::*;
 use crate::runtime::heap::class::*;
 use crate::runtime::heap::constant_pool::*;
 use crate::runtime::thread::*;
+use log::debug;
 
 pub struct INVOKE_STATIC {}
 
@@ -47,6 +48,7 @@ impl Instruction for INVOKE_STATIC {
                     init_class(frame.thread.clone(), class.clone());
                     return;
                 }
+                debug!("invoke static method {}", method_instance.class_member.name);
             }
             invoke_method(frame, rc);
         }

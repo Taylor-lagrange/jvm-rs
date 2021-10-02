@@ -60,14 +60,17 @@ impl Instruction for PUT_STATIC {
                 .nth(0)
                 .unwrap()
             {
-                'z' | 'B' | 'C' | 'S' | 'I' => {
+                'Z' | 'B' | 'C' | 'S' | 'I' => {
                     class_var.set_int(slot_id, frame.operand_stack.pop_int())
                 }
                 'F' => class_var.set_float(slot_id, frame.operand_stack.pop_float()),
                 'J' => class_var.set_long(slot_id, frame.operand_stack.pop_long()),
                 'D' => class_var.set_double(slot_id, frame.operand_stack.pop_double()),
                 'L' | '[' => class_var.set_ref(slot_id, frame.operand_stack.pop_ref()),
-                _ => panic!("todo"),
+                _ => panic!(
+                    "todo: unknown descriptor {}",
+                    field_instance.class_member.descriptor
+                ),
             }
         }
     }

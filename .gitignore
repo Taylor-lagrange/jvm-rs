@@ -3,5 +3,6 @@ log/*
 # resources/*
 target/*
 # *.class
+.DS_Store
 .idea/*
 *.svg

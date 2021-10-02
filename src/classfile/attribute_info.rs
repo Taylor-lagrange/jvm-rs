@@ -3,16 +3,16 @@ use super::constant_pool::*;
 
 #[derive(Clone, Debug)]
 pub struct ExceptionTableEntry {
-    start_pc: u16,
-    end_pc: u16,
-    handler_pc: u16,
-    catch_type: u16,
+    pub start_pc: u16,
+    pub end_pc: u16,
+    pub handler_pc: u16,
+    pub catch_type: u16,
 }
 
 #[derive(Clone, Debug)]
 pub struct LineNumberTableEntry {
-    start_pc: u16,
-    line_number: u16,
+    pub(crate) start_pc: u16,
+    pub(crate) line_number: u16,
 }
 
 #[derive(Clone, Debug)]

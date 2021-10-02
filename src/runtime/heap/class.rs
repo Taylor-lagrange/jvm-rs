@@ -7,6 +7,7 @@ use super::method::*;
 use crate::classfile::class_file::*;
 use crate::runtime::heap::object::Object;
 use crate::runtime::local_vars::*;
+use log::debug;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
@@ -17,6 +18,7 @@ pub struct Class<'a> {
     pub super_class_name: String,
     pub interface_names: Vec<String>,
     pub constant_pool: Option<Rc<RefCell<ConstantPool<'a>>>>,
+    pub source_file: String,
     pub fields: Vec<Rc<RefCell<Field<'a>>>>,
     pub methods: Vec<Rc<RefCell<Method<'a>>>>,
     pub loader: Weak<RefCell<ClassLoader<'a>>>,
@@ -26,25 +28,29 @@ pub struct Class<'a> {
     pub static_slot_count: u32,
     pub static_vars: StaticFinalVar<'a>,
     pub init_started: bool,
+    pub j_class: Option<Rc<RefCell<Object<'a>>>>, // reflection : String.class
 }
 
 impl<'a> Class<'a> {
     pub fn new_class(cf: ClassFile) -> Rc<RefCell<Class<'a>>> {
+        debug!("create class {}", cf.class_name());
         let class = Rc::new(RefCell::new(Class {
             access_flags: cf.access_flags,
             name: cf.class_name(),
             super_class_name: cf.super_class_name(),
             interface_names: cf.interface_names(),
+            source_file: cf.get_file_name(),
             ..Default::default()
         }));
         {
-            let mut class_instance = class.borrow_mut();
-            class_instance.constant_pool =
+            //后面得用常量池
+            class.borrow_mut().constant_pool =
                 Some(ConstantPool::new(Rc::downgrade(&class), &cf.constant_pool));
-            class_instance.fields =
-                Field::new_fields(Rc::downgrade(&class), &cf.constant_pool, cf.fields);
-            class_instance.methods =
-                Method::new_methods(Rc::downgrade(&class), &cf.constant_pool, cf.methods);
+            let fields = Field::new_fields(Rc::downgrade(&class), &cf.constant_pool, cf.fields);
+            let methods = Method::new_methods(Rc::downgrade(&class), &cf.constant_pool, cf.methods);
+            let mut class_instance = class.borrow_mut();
+            class_instance.fields = fields;
+            class_instance.methods = methods;
         }
         class
     }
@@ -69,6 +75,9 @@ impl<'a> Class<'a> {
     pub fn is_interface(&self) -> bool {
         self.access_flags & ACC_INTERFACE != 0
     }
+    pub fn is_primitive(&self) -> bool {
+        PRIMITIVE_TYPES.contains_key(self.name.as_str())
+    }
     pub fn is_abstract(&self) -> bool {
         self.access_flags & ACC_ABSTRACT != 0
     }
@@ -83,6 +92,9 @@ impl<'a> Class<'a> {
     }
     pub fn is_accessible_to(&self, c: &Class) -> bool {
         self.is_public() || self.get_package_name() == c.get_package_name()
+    }
+    pub fn java_name(&self) -> String {
+        self.name.replace("/", ".")
     }
     pub fn get_package_name(&self) -> String {
         let i = self.name.rfind("/");
@@ -115,6 +127,28 @@ impl<'a> Class<'a> {
         }
         let rc = super_class.unwrap();
         return rc.borrow().get_field(name, descriptor, is_static);
+    }
+    pub fn get_method(
+        &self,
+        name: &String,
+        descriptor: &String,
+        is_static: bool,
+    ) -> Rc<RefCell<Method<'a>>> {
+        for method in self.methods.iter() {
+            if method.borrow().class_member.is_static() == is_static
+                && method.borrow().class_member.name == *name
+                && method.borrow().class_member.descriptor == *descriptor
+            {
+                return method.clone();
+            }
+        }
+        //recursive find field in class, so it not violate the borrow-checker
+        let super_class = self.super_class.clone().upgrade();
+        if super_class.is_none() {
+            panic!("no field match require in current class!");
+        }
+        let rc = super_class.unwrap();
+        return rc.borrow().get_method(name, descriptor, is_static);
     }
     fn get_static_method(&self, name: &String, descriptor: &String) -> Weak<RefCell<Method<'a>>> {
         for info in self.methods.iter() {
@@ -208,5 +242,24 @@ impl<'a> Class<'a> {
             array_class_name = get_component_class_name(rc.borrow().name.to_owned());
         }
         ClassLoader::load_class(loader, &array_class_name)
+    }
+    pub fn get_ref_var(
+        &self,
+        field_name: &String,
+        field_descriptor: &String,
+    ) -> Option<Rc<RefCell<Object<'a>>>> {
+        let field = self
+            .get_field(field_name, field_descriptor, true)
+            .borrow()
+            .slot_id;
+        self.static_vars.get_ref(field as usize)
+    }
+
+    pub fn get_instance_method(
+        &self,
+        field_name: &String,
+        field_descriptor: &String,
+    ) -> Rc<RefCell<Method<'a>>> {
+        self.get_method(field_name, field_descriptor, true)
     }
 }
