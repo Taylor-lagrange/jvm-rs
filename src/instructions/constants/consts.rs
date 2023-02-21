@@ -2,37 +2,21 @@ use crate::instructions::base::bytecode_reader::*;
 use crate::instructions::base::instruction::*;
 use crate::runtime::thread::*;
 
-pub struct ACONST_NULL {}
-pub struct DCONST_0 {}
-pub struct DCONST_1 {}
-pub struct FCONST_0 {}
-pub struct FCONST_1 {}
-pub struct FCONST_2 {}
-pub struct ICONST_M1 {}
-pub struct ICONST_0 {}
-pub struct ICONST_1 {}
-pub struct ICONST_2 {}
-pub struct ICONST_3 {}
-pub struct ICONST_4 {}
-pub struct ICONST_5 {}
-pub struct LCONST_0 {}
-pub struct LCONST_1 {}
-
-impl NoOperandsInstruction for ACONST_NULL {}
-impl NoOperandsInstruction for DCONST_0 {}
-impl NoOperandsInstruction for DCONST_1 {}
-impl NoOperandsInstruction for FCONST_0 {}
-impl NoOperandsInstruction for FCONST_1 {}
-impl NoOperandsInstruction for FCONST_2 {}
-impl NoOperandsInstruction for ICONST_M1 {}
-impl NoOperandsInstruction for ICONST_0 {}
-impl NoOperandsInstruction for ICONST_1 {}
-impl NoOperandsInstruction for ICONST_2 {}
-impl NoOperandsInstruction for ICONST_3 {}
-impl NoOperandsInstruction for ICONST_4 {}
-impl NoOperandsInstruction for ICONST_5 {}
-impl NoOperandsInstruction for LCONST_0 {}
-impl NoOperandsInstruction for LCONST_1 {}
+instruction!(ACONST_NULL, NoOperandsInstruction);
+instruction!(DCONST_0, NoOperandsInstruction);
+instruction!(DCONST_1, NoOperandsInstruction);
+instruction!(FCONST_0, NoOperandsInstruction);
+instruction!(FCONST_1, NoOperandsInstruction);
+instruction!(FCONST_2, NoOperandsInstruction);
+instruction!(ICONST_M1, NoOperandsInstruction);
+instruction!(ICONST_0, NoOperandsInstruction);
+instruction!(ICONST_1, NoOperandsInstruction);
+instruction!(ICONST_2, NoOperandsInstruction);
+instruction!(ICONST_3, NoOperandsInstruction);
+instruction!(ICONST_4, NoOperandsInstruction);
+instruction!(ICONST_5, NoOperandsInstruction);
+instruction!(LCONST_0, NoOperandsInstruction);
+instruction!(LCONST_1, NoOperandsInstruction);
 
 impl Instruction for ACONST_NULL {
     fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {

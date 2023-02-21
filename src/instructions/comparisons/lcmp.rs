@@ -2,9 +2,7 @@ use crate::instructions::base::bytecode_reader::*;
 use crate::instructions::base::instruction::*;
 use crate::runtime::thread::*;
 
-pub struct LCMP {}
-
-impl NoOperandsInstruction for LCMP {}
+instruction!(LCMP, NoOperandsInstruction);
 
 impl Instruction for LCMP {
     fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {

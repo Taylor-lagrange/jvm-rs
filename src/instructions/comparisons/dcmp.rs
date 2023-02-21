@@ -2,11 +2,8 @@ use crate::instructions::base::bytecode_reader::*;
 use crate::instructions::base::instruction::*;
 use crate::runtime::thread::*;
 
-pub struct DCMPG {}
-pub struct DCMPL {}
-
-impl NoOperandsInstruction for DCMPG {}
-impl NoOperandsInstruction for DCMPL {}
+instruction!(DCMPG, NoOperandsInstruction);
+instruction!(DCMPL, NoOperandsInstruction);
 
 impl Instruction for DCMPG {
     fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {

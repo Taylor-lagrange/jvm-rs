@@ -3,19 +3,12 @@ use crate::instructions::base::bytecode_reader::*;
 use crate::instructions::base::instruction::*;
 use crate::runtime::thread::*;
 
-pub struct IF_ICMPEQ {}
-pub struct IF_ICMPNE {}
-pub struct IF_ICMPLT {}
-pub struct IF_ICMPLE {}
-pub struct IF_ICMPGT {}
-pub struct IF_ICMPGE {}
-
-impl BranchInstruction for IF_ICMPEQ {}
-impl BranchInstruction for IF_ICMPNE {}
-impl BranchInstruction for IF_ICMPLT {}
-impl BranchInstruction for IF_ICMPLE {}
-impl BranchInstruction for IF_ICMPGT {}
-impl BranchInstruction for IF_ICMPGE {}
+instruction!(IF_ICMPEQ, BranchInstruction);
+instruction!(IF_ICMPNE, BranchInstruction);
+instruction!(IF_ICMPLT, BranchInstruction);
+instruction!(IF_ICMPLE, BranchInstruction);
+instruction!(IF_ICMPGT, BranchInstruction);
+instruction!(IF_ICMPGE, BranchInstruction);
 
 impl Instruction for IF_ICMPEQ {
     fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {

@@ -35,3 +35,12 @@ pub trait Index16Instruction: Instruction {
         data as usize
     }
 }
+
+macro_rules! instruction {
+    ($instruction_name:ident, $operand_type:ident) => {
+        pub struct $instruction_name {}
+        impl $operand_type for $instruction_name {}
+    };
+}
+
+pub(crate) use instruction;

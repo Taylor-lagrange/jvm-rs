@@ -3,11 +3,8 @@ use crate::instructions::base::bytecode_reader::*;
 use crate::instructions::base::instruction::*;
 use crate::runtime::thread::*;
 
-pub struct IF_ACMPEQ {}
-pub struct IF_ACMPNE {}
-
-impl BranchInstruction for IF_ACMPEQ {}
-impl BranchInstruction for IF_ACMPNE {}
+instruction!(IF_ACMPEQ, BranchInstruction);
+instruction!(IF_ACMPNE, BranchInstruction);
 
 impl Instruction for IF_ACMPEQ {
     fn execute(&mut self, reader: &mut BytecodeReader, frame: &mut Frame) {
